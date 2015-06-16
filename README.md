@@ -1,2 +1,2 @@
 # cbibs-api
-Chesapeake Bay Interpretive Buoy Syste Public API
+Chesapeake Bay Interpretive Buoy System Public API
