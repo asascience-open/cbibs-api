@@ -1,0 +1,18 @@
+COMMON: &common
+  HOST: localhost
+  PORT: 3000
+  DEBUG: False
+  TESTING: False
+  LOGGING: True
+  LOG_FILE_PATH: 'logs'
+  LOG_FILE: 'cbibs_api.log'
+
+DEVELOPMENT: &development
+  <<: *common
+  DEBUG: True
+  SQLALCHEMY_DATABASE_URI: 'sqlite:///ncbo_dev.sql'
+
+PRODUCTION: &production
+  <<: *common
+  DEBUG: False
+  SQLALCHEMY_DATABASE_URI: 'postgres://localhost/ncbo_dev'
