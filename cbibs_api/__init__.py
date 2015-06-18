@@ -9,9 +9,10 @@ Application and project global declarations
 Copyright 2015 RPS ASA
 See LICENSE.txt
 '''
-from flask import Flask, jsonify
+from flask import Flask
 from flask_environments import Environments
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask_restful import Api
 from cbibs_api.reverse_proxy import ReverseProxied
 import os
 
@@ -44,4 +45,5 @@ if app.config['LOGGING'] == True:
     app.logger.setLevel(logging.DEBUG)
     app.logger.info('Application Process Started')
 
+api = Api(app)
 db = SQLAlchemy(app)
