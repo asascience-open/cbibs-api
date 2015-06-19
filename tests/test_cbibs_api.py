@@ -47,5 +47,13 @@ class TestJsonApi(TestCase):
          post_response = self.make_json_payload("ListConstellations")
          assert 'CBIBS' in post_response.json['result']
 
+    def test_ListPlatforms(self):
+         """Test the platforms, check if Jamestown is present"""
+         req_str = "/ListPlatforms?api_key={}&constellation={}".format(self.API_KEY,
+                                                                       'CBIBS')
+         get_response = self.client.get(req_str)
+         assert get_response.status_code == 200
+         assert 'J' in get_response.json['result']['id']
+
 if __name__ == '__main__':
     unittest.main()
