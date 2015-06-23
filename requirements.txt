@@ -1,4 +1,6 @@
 Babel==1.3
+# the following is important to prevent DoS attacks with XML
+defusedxml==0.4.1
 Flask==0.10.1
 Flask-Environments==0.1
 Flask-RESTful==0.3.3

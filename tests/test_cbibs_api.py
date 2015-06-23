@@ -2,7 +2,13 @@ import unittest
 from cbibs_api.api import app
 from flask.ext.testing import TestCase
 import json
+# safe since we're parsing trusted input
+from lxml import etree
 
+JSON_HEADERS = headers = {"Content-Type": "application/json",
+                          'Accept': 'application/json'}
+XML_HEADERS = headers = {"Content-Type": "application/xml",
+                         'Accept': 'application/xml'}
 
 class TestJsonApi(TestCase):
     def create_app(self):
@@ -14,15 +20,14 @@ class TestJsonApi(TestCase):
         payload = json.dumps({"method": method_name,
                    "params": arglist + [self.API_KEY] if use_api_key else arglist,
                    "id": 1})
-        headers = {"Content-Type": "application/json",
-                   'Accept': 'application/json'}
-        r = self.client.post('/', data=payload, headers=headers)
+        r = self.client.post('/', data=payload, headers=JSON_HEADERS)
         return r
 
     def test_bad_input(self):
         """Make sure garbage/bad input returns proper responses, etc."""
         # test with no API specifed and no login
-        no_api_key_response = self.client.get("/".format(self.API_KEY))
+        no_api_key_response = self.client.get("/".format(self.API_KEY),
+                                              headers=JSON_HEADERS)
         assert no_api_key_response.status_code == 401
         assert (no_api_key_response.json['error'] ==
                 "Incorrect API key, or API key not supplied")
@@ -36,24 +41,46 @@ class TestJsonApi(TestCase):
         assert post_response.status_code == 200
         assert post_response.json['result'] == expected
         # now test new GET enpoint
-        get_response = self.client.get("/Test?api_key={}".format(self.API_KEY))
-        assert get_response.json['result'] == expected
+        get_response = self.client.get("/Test?api_key={}".format(self.API_KEY),
+                                       headers=JSON_HEADERS)
+        assert get_response.json == expected
 
     def test_ListConstellations(self):
          """Test that CBIBS is among the list of constellations"""
-         get_response = self.client.get("/ListConstellations?api_key={}".format(self.API_KEY))
+         get_response = self.client.get("/ListConstellations?api_key={}".format(self.API_KEY),
+                                        headers=JSON_HEADERS)
          assert get_response.status_code == 200
-         assert 'CBIBS' in get_response.json['result']
+         assert 'CBIBS' in get_response.json
          post_response = self.make_json_payload("ListConstellations")
          assert 'CBIBS' in post_response.json['result']
 
     def test_ListPlatforms(self):
          """Test the platforms, check if Jamestown is present"""
          req_str = "/ListPlatforms?api_key={}&constellation={}".format(self.API_KEY,
-                                                                       'CBIBS')
-         get_response = self.client.get(req_str)
+                                                                       'CBIBS',)
+         # GET response to REST endpoint
+         get_response = self.client.get(req_str, headers=JSON_HEADERS)
          assert get_response.status_code == 200
-         assert 'J' in get_response.json['result']['id']
+         assert 'J' in get_response.json['id']
+
+         # POST response to legacy JSONRPC endpoint
+         post_response = self.make_json_payload('ListPlatforms', ["CBIBS"])
+         xml_str = """<methodCall>
+                        <methodName>ListPlatforms</methodName>
+                        <params>
+                        <param><value><string>CBIBS</string></value></param>
+                        <param><value><string>0b0e81fe763a79660716bcee98a9ccbea653c8bd</string></value></param>
+                        </params>
+                       </methodCall>"""
+
+         # POST response to legacy XMLRPC endpoint
+         post_response = self.client.post('/', data=xml_str,
+                                          headers=XML_HEADERS)
+         root = etree.fromstring(post_response.data)
+         # make sure 'J' is in 'id' array
+         xpath_res = root.xpath(".//member[name/text()='id']/value/array/data"
+                                "/value/string[text()='J']")
+         assert len(xpath_res) == 1
 
 if __name__ == '__main__':
     unittest.main()
