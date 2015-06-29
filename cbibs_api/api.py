@@ -127,7 +127,6 @@ class QueryData(BaseResource):
             'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
     def get(self):
-        import ipdb; ipdb.set_trace()
         return db.engine.execute(SQL[self.__class__.__name__],
                                  request.args).fetchone()[0]
 
@@ -151,8 +150,8 @@ class BaseApi(Resource):
     # TODO: Add more canonical RPC error returns depending on spec requested
     def get(self):
         return OrderedDict([('id', 1),
-                           ('error', 'Please use POST for the legacy API endpoint'),
-                           ('result', None)])
+                            ('error', 'Please use POST for the legacy API endpoint'),
+                            ('result', None)])
 
     def post(self):
         if ('application/xml' in request.accept_mimetypes or
