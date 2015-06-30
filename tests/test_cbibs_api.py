@@ -90,19 +90,24 @@ class TestJsonApi(TestCase):
     def test_GetNumberMeasurements(self):
          arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2009-01-01',
                     '2010-01-01']
-         post_response = self.make_json_payload('GetNumberMeasurements',
-                                                arg_arr)
+         post_response = self.make_json_payload('GetNumberMeasurements', arg_arr)
 
     def test_LastMeasurementTime(self):
         arg_arr = ['CBIBS', 'J', 'sea_water_salinity']
         post_response = self.make_json_payload('LastMeasurementTime', arg_arr)
 
     def test_RetrieveCurrentReadings(self):
-         arg_arr = ['CBIBS', 'J']
-         post_response = self.make_json_payload('RetrieveCurrentReadings',
-                                                arg_arr)
-         assert ('sea_water_salinity' in
-                 post_response.json['result']['measurement'])
+        arg_arr = ['CBIBS', 'J']
+        post_response = self.make_json_payload('RetrieveCurrentReadings',
+                                               arg_arr)
+        assert ('sea_water_salinity' in
+                post_response.json['result']['measurement'])
+
+    def test_ListStationsWithParam(self):
+        arg_arr = ['CBIBS', 'sea_water_salinity']
+        post_response = self.make_json_payload('ListStationsWithParam',
+                                               arg_arr)
+        assert 'J' in post_response.json['result']
 
 if __name__ == '__main__':
     unittest.main()
