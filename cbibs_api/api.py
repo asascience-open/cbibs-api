@@ -115,11 +115,31 @@ class ListPlatforms(BaseResource):
 
 api.add_resource(ListPlatforms, '/ListPlatforms')
 
+
+class GetNumberMeasurements(BaseResource):
+    keys = ['constellation', 'stationid', 'measurement',
+            'beg_date', 'end_date']
+    method_decorators = [check_api_key_and_req_type]
+    def get(self):
+        return self.result_simple(result_only=True, singleton_result=True)
+
+api.add_resource(GetNumberMeasurements, '/GetNumberMeasurements')
+
+class LastMeasurementTime(BaseResource):
+    keys = ['constellation', 'stationid', 'measurement']
+    method_decorators = [check_api_key_and_req_type]
+    def get(self):
+        return str(self.result_simple(result_only=True, singleton_result=True))
+
+api.add_resource(LastMeasurementTime, '/LastMeasurementTime')
+
 class RetrieveCurrentReadings(BaseResource):
     keys = ['constellation', 'station']
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(reflect_params=True)
+
+api.add_resource(RetrieveCurrentReadings, '/RetrieveCurrentReadings')
 
 class QueryData(BaseResource):
     """Fetches data within a time range"""
@@ -130,14 +150,18 @@ class QueryData(BaseResource):
         return db.engine.execute(SQL[self.__class__.__name__],
                                  request.args).fetchone()[0]
 
-
 api.add_resource(QueryData, '/QueryData')
 
+# TODO: could dry this up by making a helper function for the API
+# instead of repeating every time
 routing_dict = {
          'Test': Test,
          'ListConstellations': ListConstellations,
          'ListPlatforms': ListPlatforms,
-         'QueryData': QueryData
+         'QueryData': QueryData,
+         'GetNumberMeasurements': GetNumberMeasurements,
+         'LastMeasurementTime': LastMeasurementTime,
+         'RetrieveCurrentReadings': RetrieveCurrentReadings
         }
 
 
