@@ -1,6 +1,8 @@
 COMMON: &common
   HOST: localhost
   PORT: 3000
+  # defines the valid API key for the application
+  API_KEY: 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'
   DEBUG: False
   TESTING: False
   LOGGING: True
