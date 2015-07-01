@@ -204,5 +204,12 @@ class TestJsonApi(TestCase):
         json_response = json.loads(post_response.data)
         assert set(expected['result']) == set(json_response['result'])
 
+    def test_ListParameters(self):
+        arg_arr = ['CBIBS', 'J']
+        post_response = self.make_json_payload('ListParameters', arg_arr)
+        json_response = json.loads(post_response.data)
+        assert len(json_response['result']) > 0
+        assert json_response['error'] is None
+
 if __name__ == '__main__':
     unittest.main()

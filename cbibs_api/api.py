@@ -149,6 +149,14 @@ class ListStationsWithParam(BaseResource):
 
 api.add_resource(ListStationsWithParam, '/ListStationsWithParam')
 
+class ListParameters(BaseResource):
+    keys = ['constellation', 'station']
+    method_decorators = [check_api_key_and_req_type]
+    def get(self):
+        return self.result_simple(result_only=True)
+
+api.add_resource(ListParameters, '/ListParameters')
+
 class QueryData(BaseResource):
     """Fetches data within a time range"""
     keys = ['constellation', 'stationid', 'measurement',
@@ -170,7 +178,8 @@ routing_dict = {
          'QueryData': QueryData,
          'GetNumberMeasurements': GetNumberMeasurements,
          'LastMeasurementTime': LastMeasurementTime,
-         'RetrieveCurrentReadings': RetrieveCurrentReadings
+         'RetrieveCurrentReadings': RetrieveCurrentReadings,
+         'ListParameters' : ListParameters
         }
 
 
