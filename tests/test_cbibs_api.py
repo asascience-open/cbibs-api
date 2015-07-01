@@ -1,14 +1,29 @@
-import unittest
+#!/usr/bin/env python
+'''
+tests/test_cbibs_api.py
+
+Unit tests for the CBIBS API Methods
+'''
+
 from cbibs_api.api import app
 from flask.ext.testing import TestCase
-import json
+from dateutil.parser import parse as dateparse
+from datetime import datetime
+
 # safe since we're parsing trusted input
 from lxml import etree
 
-JSON_HEADERS = headers = {"Content-Type": "application/json",
-                          'Accept': 'application/json'}
-XML_HEADERS = headers = {"Content-Type": "application/xml",
-                         'Accept': 'application/xml'}
+import json
+import unittest
+
+JSON_HEADERS = {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+}
+XML_HEADERS = {
+    "Content-Type": "application/xml",
+    "Accept": "application/xml"
+}
 
 class TestJsonApi(TestCase):
     def create_app(self):
@@ -150,26 +165,44 @@ class TestJsonApi(TestCase):
         assert json_response == expected
 
     def test_GetNumberMeasurements(self):
-         arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2009-01-01',
-                    '2010-01-01']
-         post_response = self.make_json_payload('GetNumberMeasurements', arg_arr)
+        arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2014-08-01',
+                   '2014-08-02']
+        post_response = self.make_json_payload('GetNumberMeasurements', arg_arr)
+        expected = {
+            "id": 1, "error": None, "result": 23
+        }
+        json_response = json.loads(post_response.data)
+        assert expected == json_response
+
 
     def test_LastMeasurementTime(self):
         arg_arr = ['CBIBS', 'J', 'sea_water_salinity']
         post_response = self.make_json_payload('LastMeasurementTime', arg_arr)
+        json_response = json.loads(post_response.data)
+        assert json_response['id'] == 1
+        assert json_response['error'] is None
+        obs_date = dateparse(json_response['result']) # Make sure we can parse a proper datek
+        assert obs_date > datetime(2014,8,1)
 
     def test_RetrieveCurrentReadings(self):
         arg_arr = ['CBIBS', 'J']
-        post_response = self.make_json_payload('RetrieveCurrentReadings',
-                                               arg_arr)
-        assert ('sea_water_salinity' in
-                post_response.json['result']['measurement'])
+        post_response = self.make_json_payload('RetrieveCurrentReadings', arg_arr)
+        json_response = json.loads(post_response.data)
+        # Assert no duplicates
+        assert len(json_response['result']['measurement']) == len(set(json_response['result']['measurement']))
+        assert len(json_response['result']['measurement']) > 0
+        assert len(json_response['result']['time']) > 0
+        assert json_response['result']['station'] == 'J'
 
     def test_ListStationsWithParam(self):
         arg_arr = ['CBIBS', 'sea_water_salinity']
         post_response = self.make_json_payload('ListStationsWithParam',
                                                arg_arr)
-        assert 'J' in post_response.json['result']
+        expected = {
+            "id": 1, "error": None, "result": ["SN","PL","J","SR","S","N","AN","UP","GR","FL","RC"]
+        }
+        json_response = json.loads(post_response.data)
+        assert set(expected['result']) == set(json_response['result'])
 
 if __name__ == '__main__':
     unittest.main()
