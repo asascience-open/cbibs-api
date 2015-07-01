@@ -12,7 +12,7 @@ COMMON: &common
 DEVELOPMENT: &development
   <<: *common
   DEBUG: True
-  SQLALCHEMY_DATABASE_URI: 'sqlite:///ncbo_dev.sql'
+  SQLALCHEMY_DATABASE_URI: 'postgres://localhost/ncbo_dev'
 
 PRODUCTION: &production
   <<: *common

@@ -30,7 +30,7 @@ class BaseResource(Resource):
         """Responds to GET request and provides a JSON result"""
         # return JSON if requested
         # return XML in XMLRPC format if XML is requested
-        if (request.content_type in ('application/xml', 'text/xml')):
+        if request.content_type in ('application/xml', 'text/xml'):
             # unfortunately key order can't be preserved because OrderedDict
             # can't be marshalled in xmlrpc library and has to be converted to
             # a dict
