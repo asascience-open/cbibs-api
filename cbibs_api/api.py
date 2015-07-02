@@ -204,6 +204,15 @@ class MethodHelp(BaseResource):
 
 api.add_resource(MethodHelp, '/system/methodHelp')
 
+class MethodSignature(BaseResource):
+    keys = ['methodname']
+    def __init__(self):
+        cls = routing_dict[request.args['methodname']]
+        args = cls.keys or []
+        self.res = [["string" for s in args]] # Nested lists on purpose
+
+api.add_resource(MethodSignature, '/system/methodSignature')
+
 
 # TODO: could dry this up by making a helper function for the API
 # instead of repeating every time
@@ -219,7 +228,8 @@ routing_dict = {
          'ListParameters' : ListParameters,
          'RetrieveCurrentSuperSet' : RetrieveCurrentSuperSet,
          'system.listMethods' : ListMethods,
-         'system.methodHelp' : MethodHelp
+         'system.methodHelp' : MethodHelp,
+         'system.methodSignature' : MethodSignature
         }
 
 

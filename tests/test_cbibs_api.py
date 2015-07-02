@@ -234,6 +234,13 @@ class TestJsonApi(TestCase):
             json_response = json.loads(post_response.data)
             assert json_response['result']
 
+    def test_method_signature(self):
+        from cbibs_api.api import routing_dict
+        for method in routing_dict:
+            arg_arr = [method]
+            post_response = self.make_json_payload('system.methodSignature', arg_arr)
+            json_response = json.loads(post_response.data)
+            assert json_response['result']
 
 if __name__ == '__main__':
     unittest.main()
