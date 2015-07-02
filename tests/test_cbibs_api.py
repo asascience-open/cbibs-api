@@ -242,5 +242,12 @@ class TestJsonApi(TestCase):
             json_response = json.loads(post_response.data)
             assert json_response['result']
 
+    def test_get_capabilities(self):
+        post_response = self.make_json_payload('system.getCapabilities', [])
+        json_response = json.loads(post_response.data)
+        assert len(json_response['result']) == 3
+        assert 'xmlrpc' in json_response['result']
+        assert 'json-rpc' in json_response['result']
+
 if __name__ == '__main__':
     unittest.main()

@@ -213,6 +213,26 @@ class MethodSignature(BaseResource):
 
 api.add_resource(MethodSignature, '/system/methodSignature')
 
+class GetCapabilities(BaseResource):
+    keys = []
+    def __init__(self):
+        self.res = {
+            "introspection": {
+                "specUrl": "http://phpxmlrpc.sourceforge.net/doc-2/ch10.html",
+                "specVersion": 2
+            },
+            "json-rpc": {
+                "specUrl": "http://json-rpc.org/wiki/specification",
+                "specVersion": 1
+            },
+            "xmlrpc": {
+                "specUrl": "http://www.xmlrpc.com/spec",
+                "specVersion": 1
+            }
+        }
+api.add_resource(GetCapabilities, '/system/getCapabilities')
+        
+
 
 # TODO: could dry this up by making a helper function for the API
 # instead of repeating every time
@@ -229,7 +249,8 @@ routing_dict = {
          'RetrieveCurrentSuperSet' : RetrieveCurrentSuperSet,
          'system.listMethods' : ListMethods,
          'system.methodHelp' : MethodHelp,
-         'system.methodSignature' : MethodSignature
+         'system.methodSignature' : MethodSignature,
+         'system.getCapabilities' : GetCapabilities
         }
 
 
