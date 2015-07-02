@@ -176,6 +176,15 @@ class RetrieveCurrentSuperSet(BaseResource):
 
 api.add_resource(RetrieveCurrentSuperSet, '/RetrieveCurrentSuperSet')
 
+class ListMethods(BaseResource):
+    def __init__(self):
+        self.res = routing_dict.keys()
+
+    def get(self):
+        return self.res
+
+api.add_resource(ListMethods, '/system/listMethods')
+
 
 # TODO: could dry this up by making a helper function for the API
 # instead of repeating every time
@@ -189,7 +198,8 @@ routing_dict = {
          'LastMeasurementTime': LastMeasurementTime,
          'RetrieveCurrentReadings': RetrieveCurrentReadings,
          'ListParameters' : ListParameters,
-         'RetrieveCurrentSuperSet' : RetrieveCurrentSuperSet
+         'RetrieveCurrentSuperSet' : RetrieveCurrentSuperSet,
+         'system.listMethods' : ListMethods
         }
 
 
