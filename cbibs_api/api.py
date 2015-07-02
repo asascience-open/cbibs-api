@@ -23,6 +23,7 @@ class BaseResource(Resource):
        JSON response, or an XMLRPC response if XML is requested"""
     # consider renaming to avoid confusion with the dict method
     keys = None
+    return_type = "string"
     def __init__(self):
         self.res = self.result_simple()
 
@@ -209,7 +210,7 @@ class MethodSignature(BaseResource):
     def __init__(self):
         cls = routing_dict[request.args['methodname']]
         args = cls.keys or []
-        self.res = [["string" for s in args]] # Nested lists on purpose
+        self.res = [[cls.return_type] + ["string" for s in args]] # Nested lists on purpose
 
 api.add_resource(MethodSignature, '/system/methodSignature')
 
@@ -230,9 +231,17 @@ class GetCapabilities(BaseResource):
                 "specVersion": 1
             }
         }
-api.add_resource(GetCapabilities, '/system/getCapabilities')
-        
 
+api.add_resource(GetCapabilities, '/system/getCapabilities')
+
+class GetStationStatus(BaseResource):
+    keys = ['constellation', 'station']
+    method_decorators = [check_api_key_and_req_type]
+    return_type = "int"
+    def get(self):
+        return int(not self.res)
+
+api.add_resource(GetStationStatus, '/GetStationStatus')
 
 # TODO: could dry this up by making a helper function for the API
 # instead of repeating every time
@@ -250,7 +259,8 @@ routing_dict = {
          'system.listMethods' : ListMethods,
          'system.methodHelp' : MethodHelp,
          'system.methodSignature' : MethodSignature,
-         'system.getCapabilities' : GetCapabilities
+         'system.getCapabilities' : GetCapabilities,
+         'GetStationStatus' : GetStationStatus
         }
 
 

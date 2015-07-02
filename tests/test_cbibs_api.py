@@ -249,5 +249,12 @@ class TestJsonApi(TestCase):
         assert 'xmlrpc' in json_response['result']
         assert 'json-rpc' in json_response['result']
 
+    def test_get_station_status(self):
+        arg_arr = ['CBIBS', 'J']
+        post_response = self.make_json_payload('GetStationStatus', arg_arr)
+        json_response = json.loads(post_response.data)
+        assert json_response['result'] == 0
+
+
 if __name__ == '__main__':
     unittest.main()
