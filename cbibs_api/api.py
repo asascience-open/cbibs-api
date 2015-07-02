@@ -93,7 +93,16 @@ class BaseResource(Resource):
                 results = res_vals[0][0]
         return results
 
-
+    @classmethod
+    def get_description(cls):
+        if 'xml' in request.content_type:
+            protocol = 'XML-RPC'
+        else:
+            protocol = 'JSON-RPC'
+        resource = getattr(cls, 'resource_name', None) or cls.__name__
+        arguments = ', '.join(['string %s[req]' % keyname for keyname in cls.keys or []])
+        description = 'CDRH %(protocol)s %(resource)s Function (%(arguments)s)' % locals()
+        return getattr(cls, 'helpstring', None) or description
 
 class Test(BaseResource):
     method_decorators = [check_api_key_and_req_type]
@@ -185,6 +194,45 @@ class ListMethods(BaseResource):
 
 api.add_resource(ListMethods, '/system/listMethods')
 
+class MethodHelp(BaseResource):
+    keys = ['methodname']
+    def __init__(self):
+        self.res = routing_dict[request.args['methodname']].get_description()
+
+    def get(self):
+        return self.res
+
+api.add_resource(MethodHelp, '/system/methodHelp')
+
+class MethodSignature(BaseResource):
+    keys = ['methodname']
+    def __init__(self):
+        cls = routing_dict[request.args['methodname']]
+        args = cls.keys or []
+        self.res = [["string" for s in args]] # Nested lists on purpose
+
+api.add_resource(MethodSignature, '/system/methodSignature')
+
+class GetCapabilities(BaseResource):
+    keys = []
+    def __init__(self):
+        self.res = {
+            "introspection": {
+                "specUrl": "http://phpxmlrpc.sourceforge.net/doc-2/ch10.html",
+                "specVersion": 2
+            },
+            "json-rpc": {
+                "specUrl": "http://json-rpc.org/wiki/specification",
+                "specVersion": 1
+            },
+            "xmlrpc": {
+                "specUrl": "http://www.xmlrpc.com/spec",
+                "specVersion": 1
+            }
+        }
+api.add_resource(GetCapabilities, '/system/getCapabilities')
+        
+
 
 # TODO: could dry this up by making a helper function for the API
 # instead of repeating every time
@@ -199,7 +247,10 @@ routing_dict = {
          'RetrieveCurrentReadings': RetrieveCurrentReadings,
          'ListParameters' : ListParameters,
          'RetrieveCurrentSuperSet' : RetrieveCurrentSuperSet,
-         'system.listMethods' : ListMethods
+         'system.listMethods' : ListMethods,
+         'system.methodHelp' : MethodHelp,
+         'system.methodSignature' : MethodSignature,
+         'system.getCapabilities' : GetCapabilities
         }
 
 

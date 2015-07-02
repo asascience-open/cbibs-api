@@ -226,5 +226,28 @@ class TestJsonApi(TestCase):
         from cbibs_api.api import routing_dict
         assert set(routing_dict.keys()) == set(json_response['result'])
 
+    def test_method_help(self):
+        from cbibs_api.api import routing_dict
+        for method in routing_dict:
+            arg_arr = [method]
+            post_response = self.make_json_payload('system.methodHelp', arg_arr)
+            json_response = json.loads(post_response.data)
+            assert json_response['result']
+
+    def test_method_signature(self):
+        from cbibs_api.api import routing_dict
+        for method in routing_dict:
+            arg_arr = [method]
+            post_response = self.make_json_payload('system.methodSignature', arg_arr)
+            json_response = json.loads(post_response.data)
+            assert json_response['result']
+
+    def test_get_capabilities(self):
+        post_response = self.make_json_payload('system.getCapabilities', [])
+        json_response = json.loads(post_response.data)
+        assert len(json_response['result']) == 3
+        assert 'xmlrpc' in json_response['result']
+        assert 'json-rpc' in json_response['result']
+
 if __name__ == '__main__':
     unittest.main()
