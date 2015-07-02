@@ -33,7 +33,9 @@ JOIN cbibs.d_station s ON s.id = o.d_station_id
 JOIN cbibs.d_provider pr ON pr.id = s.d_provider_id
 JOIN cbibs.d_variable v ON v.id = p.var_id
 JOIN cbibs.d_units u ON u.id = v.d_units_id
+JOIN cbibs.d_qa_code_primary qc ON qc.id = o.d_qa_code_primary_id
 WHERE
     s.description = %(station)s
     AND pr.organization = %(constellation)s
+    AND qc.qa_code = 1
 ORDER BY measurement;
