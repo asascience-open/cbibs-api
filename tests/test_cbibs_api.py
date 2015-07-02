@@ -220,5 +220,11 @@ class TestJsonApi(TestCase):
         assert len(json_response['result']['value']) > 0
         assert 'sea_water_temperature' in json_response['result']['measurement']
 
+    def test_list_methods(self):
+        post_response = self.make_json_payload('system.listMethods', [])
+        json_response = json.loads(post_response.data)
+        from cbibs_api.api import routing_dict
+        assert set(routing_dict.keys()) == set(json_response['result'])
+
 if __name__ == '__main__':
     unittest.main()
