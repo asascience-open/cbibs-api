@@ -149,6 +149,14 @@ class ListStationsWithParam(BaseResource):
 
 api.add_resource(ListStationsWithParam, '/ListStationsWithParam')
 
+class ListParameters(BaseResource):
+    keys = ['constellation', 'station']
+    method_decorators = [check_api_key_and_req_type]
+    def get(self):
+        return self.result_simple(result_only=True)
+
+api.add_resource(ListParameters, '/ListParameters')
+
 class QueryData(BaseResource):
     """Fetches data within a time range"""
     keys = ['constellation', 'stationid', 'measurement',
@@ -160,6 +168,15 @@ class QueryData(BaseResource):
 
 api.add_resource(QueryData, '/QueryData')
 
+class RetrieveCurrentSuperSet(BaseResource):
+    keys = ['superset']
+    method_decorators = [check_api_key_and_req_type]
+    def get(self):
+        return self.result_simple()
+
+api.add_resource(RetrieveCurrentSuperSet, '/RetrieveCurrentSuperSet')
+
+
 # TODO: could dry this up by making a helper function for the API
 # instead of repeating every time
 routing_dict = {
@@ -170,7 +187,9 @@ routing_dict = {
          'QueryData': QueryData,
          'GetNumberMeasurements': GetNumberMeasurements,
          'LastMeasurementTime': LastMeasurementTime,
-         'RetrieveCurrentReadings': RetrieveCurrentReadings
+         'RetrieveCurrentReadings': RetrieveCurrentReadings,
+         'ListParameters' : ListParameters,
+         'RetrieveCurrentSuperSet' : RetrieveCurrentSuperSet
         }
 
 
