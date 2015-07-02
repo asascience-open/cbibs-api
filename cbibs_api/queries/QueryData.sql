@@ -14,10 +14,12 @@ vals_rows AS (
     JOIN cbibs.d_variable v ON v.id = o.d_variable_id 
     JOIN cbibs.d_station st ON st.id = o.d_station_id
     JOIN cbibs.d_provider pr ON pr.id = st.d_provider_id
+    JOIN cbibs.d_qa_code_primary qc ON qc.id = o.d_qa_code_primary_id
     WHERE st.description = %(stationid)s 
         AND v.actual_name = %(measurement)s
         AND pr.organization = %(constellation)s 
         AND measure_ts AT TIME ZONE 'UTC' > %(beg_date)s AND  measure_ts AT TIME ZONE 'UTC' < %(end_date)s 
+        AND qc.qa_code = 1
     ORDER BY measure_ts
 ),
 vals_arr AS (
