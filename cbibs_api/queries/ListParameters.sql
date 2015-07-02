@@ -14,4 +14,3 @@ SELECT
     v.actual_name
 FROM cbibs.d_variable v
 JOIN groups g ON v.id=g.d_variable_id;
-    
