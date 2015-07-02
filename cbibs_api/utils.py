@@ -42,8 +42,8 @@ def check_api_key_and_req_type(fn):
                     json_req = request.get_json(force=True, silent=True)
                     # if a non empty or valid JSON response, try to grab the key
                     if json_req:
-                    # current key should always be specified last by in request
-                    # parameters
+                        # current key should always be specified last by in request
+                        # parameters
                         # attempt to pop off the API key since we won't need it
                         # for verification more than once
                         current_key = json_req.get('params').pop()

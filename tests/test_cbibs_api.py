@@ -1,14 +1,29 @@
-import unittest
+#!/usr/bin/env python
+'''
+tests/test_cbibs_api.py
+
+Unit tests for the CBIBS API Methods
+'''
+
 from cbibs_api.api import app
 from flask.ext.testing import TestCase
-import json
+from dateutil.parser import parse as dateparse
+from datetime import datetime
+
 # safe since we're parsing trusted input
 from lxml import etree
 
-JSON_HEADERS = headers = {"Content-Type": "application/json",
-                          'Accept': 'application/json'}
-XML_HEADERS = headers = {"Content-Type": "application/xml",
-                         'Accept': 'application/xml'}
+import json
+import unittest
+
+JSON_HEADERS = {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+}
+XML_HEADERS = {
+    "Content-Type": "application/xml",
+    "Accept": "application/xml"
+}
 
 class TestJsonApi(TestCase):
     def create_app(self):
@@ -46,68 +61,148 @@ class TestJsonApi(TestCase):
         assert get_response.json == expected
 
     def test_ListConstellations(self):
-         """Test that CBIBS is among the list of constellations"""
-         get_response = self.client.get("/ListConstellations?api_key={}".format(self.API_KEY),
-                                        headers=JSON_HEADERS)
-         assert get_response.status_code == 200
-         assert 'CBIBS' in get_response.json
-         post_response = self.make_json_payload("ListConstellations")
-         assert 'CBIBS' in post_response.json['result']
+        """Test that CBIBS is among the list of constellations"""
+        get_response = self.client.get("/ListConstellations?api_key={}".format(self.API_KEY),
+                                       headers=JSON_HEADERS)
+        assert get_response.status_code == 200
+        assert 'CBIBS' in get_response.json
+        post_response = self.make_json_payload("ListConstellations")
+        assert 'CBIBS' in post_response.json['result']
 
     def test_ListPlatforms(self):
-         """Test the platforms, check if Jamestown is present"""
-         req_str = "/ListPlatforms?api_key={}&constellation={}".format(self.API_KEY,
-                                                                       'CBIBS',)
-         # GET response to REST endpoint
-         get_response = self.client.get(req_str, headers=JSON_HEADERS)
-         assert get_response.status_code == 200
-         assert 'J' in get_response.json['id']
+        """Test the platforms, check if Jamestown is present"""
+        req_str = "/ListPlatforms?api_key={}&constellation={}".format(self.API_KEY,
+                                                                      'CBIBS',)
+        # GET response to REST endpoint
+        get_response = self.client.get(req_str, headers=JSON_HEADERS)
+        assert get_response.status_code == 200
+        assert 'J' in get_response.json['id']
 
-         # POST response to legacy JSONRPC endpoint
-         post_response = self.make_json_payload('ListPlatforms', ["CBIBS"])
-         xml_str = """<methodCall>
-                        <methodName>ListPlatforms</methodName>
-                        <params>
-                        <param><value><string>CBIBS</string></value></param>
-                        <param><value><string>0b0e81fe763a79660716bcee98a9ccbea653c8bd</string></value></param>
-                        </params>
-                       </methodCall>"""
+        # POST response to legacy JSONRPC endpoint
+        post_response = self.make_json_payload('ListPlatforms', ["CBIBS"])
+        xml_str = """<methodCall>
+                       <methodName>ListPlatforms</methodName>
+                       <params>
+                       <param><value><string>CBIBS</string></value></param>
+                       <param><value><string>%(api_key)s</string></value></param>
+                       </params>
+                      </methodCall>""" % {"api_key":self.API_KEY}
 
-         # POST response to legacy XMLRPC endpoint
-         post_response = self.client.post('/', data=xml_str,
-                                          headers=XML_HEADERS)
-         root = etree.fromstring(post_response.data)
-         # make sure 'J' is in 'id' array
-         xpath_res = root.xpath(".//member[name/text()='id']/value/array/data"
-                                "/value/string[text()='J']")
-         assert len(xpath_res) == 1
+        # POST response to legacy XMLRPC endpoint
+        post_response = self.client.post('/', data=xml_str,
+                                         headers=XML_HEADERS)
+        root = etree.fromstring(post_response.data)
+        # make sure 'J' is in 'id' array
+        xpath_res = root.xpath(".//member[name/text()='id']/value/array/data"
+                               "/value/string[text()='J']")
+        assert len(xpath_res) == 1
 
     def test_QueryData(self):
-        arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2009-01-01',
-                    '2010-01-01']
+        arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2014-08-01',
+                    '2014-08-02']
         post_response = self.make_json_payload('QueryData', arg_arr)
+        expected = {
+            "error": None,
+            "id": 1,
+            "result": {
+                "measurement": "sea_water_salinity",
+                "units": "PSU",
+                "values": {
+                    "time": [
+                        "2014-08-01 01:00:00",
+                        "2014-08-01 02:00:00",
+                        "2014-08-01 03:00:00",
+                        "2014-08-01 04:00:00",
+                        "2014-08-01 05:00:00",
+                        "2014-08-01 06:00:00",
+                        "2014-08-01 07:00:00",
+                        "2014-08-01 08:00:00",
+                        "2014-08-01 09:00:00",
+                        "2014-08-01 10:00:00",
+                        "2014-08-01 11:00:00",
+                        "2014-08-01 12:00:00",
+                        "2014-08-01 13:00:00",
+                        "2014-08-01 14:00:00",
+                        "2014-08-01 15:00:00",
+                        "2014-08-01 16:00:00",
+                        "2014-08-01 17:00:00",
+                        "2014-08-01 18:00:00",
+                        "2014-08-01 19:00:00",
+                        "2014-08-01 20:00:00",
+                        "2014-08-01 21:00:00",
+                        "2014-08-01 22:00:00",
+                        "2014-08-01 23:00:00"
+                    ],
+                    "value": [
+                        2.91,
+                        2.55,
+                        2.35,
+                        2.25,
+                        2.39,
+                        2.64,
+                        3.15,
+                        3.34,
+                        3.38,
+                        3.39,
+                        2.69,
+                        2.78,
+                        3.07,
+                        2.67,
+                        2.26,
+                        1.72,
+                        1.92,
+                        2.59,
+                        3.3,
+                        4.0,
+                        4.13,
+                        4.39,
+                        3.4
+                    ]
+                }
+            }
+        }
+        json_response = json.loads(post_response.data)
+        assert json_response == expected
 
     def test_GetNumberMeasurements(self):
-         arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2009-01-01',
-                    '2010-01-01']
-         post_response = self.make_json_payload('GetNumberMeasurements', arg_arr)
+        arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2014-08-01',
+                   '2014-08-02']
+        post_response = self.make_json_payload('GetNumberMeasurements', arg_arr)
+        expected = {
+            "id": 1, "error": None, "result": 23
+        }
+        json_response = json.loads(post_response.data)
+        assert expected == json_response
+
 
     def test_LastMeasurementTime(self):
         arg_arr = ['CBIBS', 'J', 'sea_water_salinity']
         post_response = self.make_json_payload('LastMeasurementTime', arg_arr)
+        json_response = json.loads(post_response.data)
+        assert json_response['id'] == 1
+        assert json_response['error'] is None
+        obs_date = dateparse(json_response['result']) # Make sure we can parse a proper datek
+        assert obs_date > datetime(2014,8,1)
 
     def test_RetrieveCurrentReadings(self):
         arg_arr = ['CBIBS', 'J']
-        post_response = self.make_json_payload('RetrieveCurrentReadings',
-                                               arg_arr)
-        assert ('sea_water_salinity' in
-                post_response.json['result']['measurement'])
+        post_response = self.make_json_payload('RetrieveCurrentReadings', arg_arr)
+        json_response = json.loads(post_response.data)
+        # Assert no duplicates
+        assert len(json_response['result']['measurement']) == len(set(json_response['result']['measurement']))
+        assert len(json_response['result']['measurement']) > 0
+        assert len(json_response['result']['time']) > 0
+        assert json_response['result']['station'] == 'J'
 
     def test_ListStationsWithParam(self):
         arg_arr = ['CBIBS', 'sea_water_salinity']
         post_response = self.make_json_payload('ListStationsWithParam',
                                                arg_arr)
-        assert 'J' in post_response.json['result']
+        expected = {
+            "id": 1, "error": None, "result": ["SN","PL","J","SR","S","N","AN","UP","GR","FL","RC"]
+        }
+        json_response = json.loads(post_response.data)
+        assert set(expected['result']) == set(json_response['result'])
 
 if __name__ == '__main__':
     unittest.main()
