@@ -29,20 +29,7 @@ class BaseResource(Resource):
 
     def get(self):
         """Responds to GET request and provides a JSON result"""
-        # return JSON if requested
-        # return XML in XMLRPC format if XML is requested
-        if request.content_type in ('application/xml', 'text/xml'):
-            # unfortunately key order can't be preserved because OrderedDict
-            # can't be marshalled in xmlrpc library and has to be converted to
-            # a dict
-            if hasattr(self.res, '__dict__'):
-                xml_str = xmlrpc_client.dumps((dict(self.res),), methodresponse=True)
-            else:
-                xml_str = xmlrpc_client.dumps((self.res,), methodresponse=True)
-            return Response(xml_str, mimetype='text/xml')
-        # return the JSON if not XML
-        else:
-            return self.res
+        return self.res
 
     def result_simple(self, result_only=False, singleton_result=False,
                       reflect_params=False, sql_name_override=None):
@@ -113,6 +100,7 @@ class Test(BaseResource):
 api.add_resource(Test, '/Test')
 
 class ListConstellations(BaseResource):
+    keys = []
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(result_only=True)
@@ -346,8 +334,13 @@ class BaseApi(Resource):
             return OrderedDict([('id', 1), ('error', None), ('result', res)])
         # return XML in XMLRPC format if XML is requested, or if it's a GET
         # request, return only the result from the REST API
-        else:
-            return res
+        elif 'xml' in request.content_type:
+            if hasattr(res, '__dict__'):
+                xml_str = xmlrpc_client.dumps((dict(res),), methodresponse=True)
+            else:
+                xml_str = xmlrpc_client.dumps((res,), methodresponse=True)
+            return Response(xml_str, mimetype='text/xml')
+        return jsonify(error='Invalid request'), 400
 
 
 api.add_resource(BaseApi, '/')

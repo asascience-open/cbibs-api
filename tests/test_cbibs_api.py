@@ -82,6 +82,12 @@ class TestJsonApi(TestCase):
         post_response = self.make_json_payload("ListConstellations")
         assert 'CBIBS' in post_response.json['result']
 
+        post_response = self.make_xml_payload("ListConstellations")
+        assert post_response.status_code == 200
+        root = etree.fromstring(post_response.data)
+        xpath_res = root.xpath(".//value/array/data/value/string[text()='CBIBS']")
+        assert len(xpath_res) == 1
+
     def test_ListPlatforms(self):
         """Test the platforms, check if Jamestown is present"""
         req_str = "/ListPlatforms?api_key={}&constellation={}".format(self.API_KEY,
