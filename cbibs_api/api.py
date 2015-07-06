@@ -254,6 +254,20 @@ class QueryDataRaw(BaseResource):
     def get(self):
         return self.res
 
+api.add_resource(QueryDataRaw, '/QueryDataRaw')
+
+class GetMetaDataLocation(BaseResource):
+    keys = ['constellation', 'stationid']
+    method_decorators = [check_api_key_and_req_type]
+
+    def get(self):
+        return {
+            'latitude':self.res['latitude'][0],
+            'longitude':self.res['longitude'][0]
+        }
+
+api.add_resource(GetMetaDataLocation, '/GetMetaDataLocation')
+
 # TODO: could dry this up by making a helper function for the API
 # instead of repeating every time
 routing_dict = {
@@ -272,7 +286,8 @@ routing_dict = {
          'system.methodSignature' : MethodSignature,
          'system.getCapabilities' : GetCapabilities,
          'GetStationStatus' : GetStationStatus,
-         'QueryDataRaw' : QueryDataRaw
+         'QueryDataRaw' : QueryDataRaw,
+         'jsonrpc_cdrh.GetMetaDataLocation' : GetMetaDataLocation
         }
 
 

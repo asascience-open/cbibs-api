@@ -15,6 +15,7 @@ from lxml import etree
 
 import json
 import unittest
+import numpy as np
 
 JSON_HEADERS = {
     "Content-Type": "application/json",
@@ -322,6 +323,14 @@ class TestJsonApi(TestCase):
         json_response = json.loads(post_response.data)
         assert json_response == expected
 
+    def test_get_metadata_location(self):
+        arg_arr = ['CBIBS', 'J']
+        post_response = self.make_json_payload('jsonrpc_cdrh.GetMetaDataLocation', arg_arr)
+        json_response = json.loads(post_response.data)
+        assert not isinstance(json_response['result']['latitude'], list)
+        lat = json_response['result']['latitude']
+        lon = json_response['result']['longitude']
+        np.testing.assert_allclose([lat, lon], np.array([37.204168, -76.777355]))
 
 if __name__ == '__main__':
     unittest.main()
