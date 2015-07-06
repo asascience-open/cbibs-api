@@ -97,6 +97,7 @@ class BaseResource(Resource):
         return getattr(cls, 'helpstring', None) or description
 
 class Test(BaseResource):
+    keys = []
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(result_only=True, singleton_result=True)
@@ -179,6 +180,7 @@ class RetrieveCurrentSuperSet(BaseResource):
 api.add_resource(RetrieveCurrentSuperSet, '/RetrieveCurrentSuperSet')
 
 class ListMethods(BaseResource):
+    keys = []
     def __init__(self):
         self.res = routing_dict.keys()
 
@@ -268,7 +270,9 @@ class QueryDataSimple(BaseResource):
         self.res = db.engine.execute(SQL['QueryDataRaw'],
                                  request.args).fetchone()[0]
     def get(self):
-        return self.res['values']
+        retval = self.res['values']
+        retval['value'] = [float(i) for i in retval['value']]
+        return retval
 
 api.add_resource(QueryDataSimple, '/QueryDataSimple')
 
@@ -314,8 +318,8 @@ routing_dict = {
          'system.getCapabilities' : GetCapabilities,
          'GetStationStatus' : GetStationStatus,
          'QueryDataRaw' : QueryDataRaw,
-         'jsonrpc_cdrh.GetMetaDataLocation' : GetMetaDataLocation,
-         'jsonrpc_cdrh.QueryDataSimple' : QueryDataSimple,
+         'GetMetaDataLocation' : GetMetaDataLocation,
+         'QueryDataSimple' : QueryDataSimple,
          'QueryDataByTime': QueryDataByTime,
          'ListQACodes' : ListQACodes
         }
