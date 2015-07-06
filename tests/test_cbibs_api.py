@@ -332,5 +332,32 @@ class TestJsonApi(TestCase):
         lon = json_response['result']['longitude']
         np.testing.assert_allclose([lat, lon], np.array([37.204168, -76.777355]))
 
+    def test_query_data_simple(self):
+        arg_arr = ['CBIBS', 'J', 'sea_water_temperature', '2015-05-01', '2015-05-01T06:00']
+        post_response = self.make_json_payload('jsonrpc_cdrh.QueryDataSimple', arg_arr)
+        json_response = json.loads(post_response.data)
+        expected = {
+            "error": None,
+            "id": 1,
+            "result": {
+                "time": [
+                    "2015-05-01 01:00:00",
+                    "2015-05-01 02:00:00",
+                    "2015-05-01 03:00:00",
+                    "2015-05-01 04:00:00",
+                    "2015-05-01 05:00:00"
+                ],
+                "value": [
+                    17.0,
+                    17.12,
+                    17.16,
+                    17.11,
+                    17.15
+                ]
+            }
+        }
+        assert json_response == expected
+ 
+
 if __name__ == '__main__':
     unittest.main()
