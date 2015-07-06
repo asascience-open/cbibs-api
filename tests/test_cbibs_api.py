@@ -9,6 +9,7 @@ from cbibs_api.api import app
 from flask.ext.testing import TestCase
 from dateutil.parser import parse as dateparse
 from datetime import datetime
+from jinja2 import Environment, FileSystemLoader
 
 # safe since we're parsing trusted input
 from lxml import etree
@@ -27,6 +28,10 @@ XML_HEADERS = {
 }
 
 class TestJsonApi(TestCase):
+    def setUp(self):
+        self.j2 = Environment(loader=FileSystemLoader('tests/templates'))
+        self.xml_template = self.j2.get_template('xmlrpc.xml.j2')
+
     def create_app(self):
         app.config['TESTING'] = True
         self.API_KEY = app.config['API_KEY']
@@ -37,6 +42,13 @@ class TestJsonApi(TestCase):
                    "params": arglist + [self.API_KEY] if use_api_key else arglist,
                    "id": 1})
         r = self.client.post('/', data=payload, headers=JSON_HEADERS)
+        return r
+
+    def make_xml_payload(self, method_name, arglist=[], use_api_key=True):
+        if use_api_key:
+            arglist = arglist + [self.API_KEY]
+        payload = self.xml_template.render(method_name=method_name, params=arglist)
+        r = self.client.post('/', data=payload, headers=XML_HEADERS)
         return r
 
     def test_bad_input(self):
@@ -81,17 +93,12 @@ class TestJsonApi(TestCase):
 
         # POST response to legacy JSONRPC endpoint
         post_response = self.make_json_payload('ListPlatforms', ["CBIBS"])
-        xml_str = """<methodCall>
-                       <methodName>ListPlatforms</methodName>
-                       <params>
-                       <param><value><string>CBIBS</string></value></param>
-                       <param><value><string>%(api_key)s</string></value></param>
-                       </params>
-                      </methodCall>""" % {"api_key":self.API_KEY}
+        assert post_response.status_code == 200
+        json_response = json.loads(post_response.data)
+        result_dict = dict(zip(json_response['result']['id'], json_response['result']['cn']))
+        assert result_dict['J'] == 'Jamestown CBIBS Buoy'
 
-        # POST response to legacy XMLRPC endpoint
-        post_response = self.client.post('/', data=xml_str,
-                                         headers=XML_HEADERS)
+        post_response = self.make_xml_payload('ListPlatforms', ['CBIBS'])
         root = etree.fromstring(post_response.data)
         # make sure 'J' is in 'id' array
         xpath_res = root.xpath(".//member[name/text()='id']/value/array/data"

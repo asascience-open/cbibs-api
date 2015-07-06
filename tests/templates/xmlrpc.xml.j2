@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<methodCall>
+    <methodName>{{ method_name }}</methodName>
+    <params>
+        {% for param in params -%}
+        <param><value><string>{{param}}</string></value></param>
+        {% endfor %}
+    </params>
+</methodCall>
