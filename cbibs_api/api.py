@@ -17,6 +17,10 @@ from cbibs_api.utils import check_api_key_and_req_type
 from cbibs_api.queries import SQL
 from defusedxml.xmlrpc import xmlrpc_client
 from collections import OrderedDict
+from jinja2 import Environment, PackageLoader
+
+# Is this superfluous because of flask?
+j2 = Environment(loader=PackageLoader('cbibs_api', 'templates'))
 
 class BaseResource(Resource):
     """Base resource which other API endpoints inherit.  Returns a simple
@@ -29,20 +33,7 @@ class BaseResource(Resource):
 
     def get(self):
         """Responds to GET request and provides a JSON result"""
-        # return JSON if requested
-        # return XML in XMLRPC format if XML is requested
-        if request.content_type in ('application/xml', 'text/xml'):
-            # unfortunately key order can't be preserved because OrderedDict
-            # can't be marshalled in xmlrpc library and has to be converted to
-            # a dict
-            if hasattr(self.res, '__dict__'):
-                xml_str = xmlrpc_client.dumps((dict(self.res),), methodresponse=True)
-            else:
-                xml_str = xmlrpc_client.dumps((self.res,), methodresponse=True)
-            return Response(xml_str, mimetype='text/xml')
-        # return the JSON if not XML
-        else:
-            return self.res
+        return self.res
 
     def result_simple(self, result_only=False, singleton_result=False,
                       reflect_params=False, sql_name_override=None):
@@ -106,6 +97,7 @@ class BaseResource(Resource):
         return getattr(cls, 'helpstring', None) or description
 
 class Test(BaseResource):
+    keys = []
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(result_only=True, singleton_result=True)
@@ -113,6 +105,7 @@ class Test(BaseResource):
 api.add_resource(Test, '/Test')
 
 class ListConstellations(BaseResource):
+    keys = []
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(result_only=True)
@@ -187,6 +180,7 @@ class RetrieveCurrentSuperSet(BaseResource):
 api.add_resource(RetrieveCurrentSuperSet, '/RetrieveCurrentSuperSet')
 
 class ListMethods(BaseResource):
+    keys = []
     def __init__(self):
         self.res = routing_dict.keys()
 
@@ -276,9 +270,33 @@ class QueryDataSimple(BaseResource):
         self.res = db.engine.execute(SQL['QueryDataRaw'],
                                  request.args).fetchone()[0]
     def get(self):
-        return self.res['values']
+        retval = self.res['values']
+        retval['value'] = [float(i) for i in retval['value']]
+        return retval
 
-api.add_resource(QueryDataSimple, '/jsonrpc/GetMetaDataLocation')
+api.add_resource(QueryDataSimple, '/QueryDataSimple')
+
+class QueryDataByTime(BaseResource):
+    keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
+    method_decorators = [check_api_key_and_req_type]
+    def __init__(self):
+        self.res = db.engine.execute(SQL['QueryDataRaw'],
+                                 request.args).fetchone()[0]
+    def get(self):
+        template = j2.get_template('query_data_by_time.xml.j2')
+        rows = []
+        for i,t in enumerate(self.res['values']['time']):
+            rows.append([t, self.res['measurement'], self.res['values']['value'][i], self.res['units']])
+        payload = template.render(rows=rows)
+        return payload
+
+api.add_resource(QueryDataByTime, '/QueryDataByTime')
+
+class ListQACodes(BaseResource):
+    keys = []
+    method_decorators = [check_api_key_and_req_type]
+
+api.add_resource(ListQACodes, '/ListQACodes')
 
 
 # TODO: could dry this up by making a helper function for the API
@@ -300,8 +318,10 @@ routing_dict = {
          'system.getCapabilities' : GetCapabilities,
          'GetStationStatus' : GetStationStatus,
          'QueryDataRaw' : QueryDataRaw,
-         'jsonrpc_cdrh.GetMetaDataLocation' : GetMetaDataLocation,
-         'jsonrpc_cdrh.QueryDataSimple' : QueryDataSimple
+         'GetMetaDataLocation' : GetMetaDataLocation,
+         'QueryDataSimple' : QueryDataSimple,
+         'QueryDataByTime': QueryDataByTime,
+         'ListQACodes' : ListQACodes
         }
 
 
@@ -346,8 +366,13 @@ class BaseApi(Resource):
             return OrderedDict([('id', 1), ('error', None), ('result', res)])
         # return XML in XMLRPC format if XML is requested, or if it's a GET
         # request, return only the result from the REST API
-        else:
-            return res
+        elif 'xml' in request.content_type:
+            if hasattr(res, '__dict__'):
+                xml_str = xmlrpc_client.dumps((dict(res),), methodresponse=True)
+            else:
+                xml_str = xmlrpc_client.dumps((res,), methodresponse=True)
+            return Response(xml_str, mimetype='text/xml')
+        return jsonify(error='Invalid request'), 400
 
 
 api.add_resource(BaseApi, '/')
