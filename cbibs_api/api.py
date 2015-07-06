@@ -243,6 +243,17 @@ class GetStationStatus(BaseResource):
 
 api.add_resource(GetStationStatus, '/GetStationStatus')
 
+
+class QueryDataRaw(BaseResource):
+    keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
+    method_decorators = [check_api_key_and_req_type]
+
+    def __init__(self):
+        self.res = db.engine.execute(SQL[self.__class__.__name__],
+                                 request.args).fetchone()[0]
+    def get(self):
+        return self.res
+
 # TODO: could dry this up by making a helper function for the API
 # instead of repeating every time
 routing_dict = {
@@ -260,7 +271,8 @@ routing_dict = {
          'system.methodHelp' : MethodHelp,
          'system.methodSignature' : MethodSignature,
          'system.getCapabilities' : GetCapabilities,
-         'GetStationStatus' : GetStationStatus
+         'GetStationStatus' : GetStationStatus,
+         'QueryDataRaw' : QueryDataRaw
         }
 
 
