@@ -266,7 +266,20 @@ class GetMetaDataLocation(BaseResource):
             'longitude':self.res['longitude'][0]
         }
 
-api.add_resource(GetMetaDataLocation, '/GetMetaDataLocation')
+api.add_resource(GetMetaDataLocation, '/jsonrpc/GetMetaDataLocation')
+
+class QueryDataSimple(BaseResource):
+    keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
+    method_decorators = [check_api_key_and_req_type]
+    
+    def __init__(self):
+        self.res = db.engine.execute(SQL['QueryDataRaw'],
+                                 request.args).fetchone()[0]
+    def get(self):
+        return self.res['values']
+
+api.add_resource(QueryDataSimple, '/jsonrpc/GetMetaDataLocation')
+
 
 # TODO: could dry this up by making a helper function for the API
 # instead of repeating every time
@@ -287,7 +300,8 @@ routing_dict = {
          'system.getCapabilities' : GetCapabilities,
          'GetStationStatus' : GetStationStatus,
          'QueryDataRaw' : QueryDataRaw,
-         'jsonrpc_cdrh.GetMetaDataLocation' : GetMetaDataLocation
+         'jsonrpc_cdrh.GetMetaDataLocation' : GetMetaDataLocation,
+         'jsonrpc_cdrh.QueryDataSimple' : QueryDataSimple
         }
 
 
