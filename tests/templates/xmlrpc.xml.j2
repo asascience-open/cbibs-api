@@ -3,7 +3,11 @@
     <methodName>{{ method_name }}</methodName>
     <params>
         {% for param in params -%}
+        {% if isinstance(param, int) -%}
+        <param><value><int>{{param}}</int></value></param>
+        {% else  -%}
         <param><value><string>{{param}}</string></value></param>
+        {% endif -%}
         {% endfor %}
     </params>
 </methodCall>

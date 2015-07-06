@@ -17,6 +17,10 @@ from cbibs_api.utils import check_api_key_and_req_type
 from cbibs_api.queries import SQL
 from defusedxml.xmlrpc import xmlrpc_client
 from collections import OrderedDict
+from jinja2 import Environment, PackageLoader
+
+# Is this superfluous because of flask?
+j2 = Environment(loader=PackageLoader('cbibs_api', 'templates'))
 
 class BaseResource(Resource):
     """Base resource which other API endpoints inherit.  Returns a simple
@@ -266,7 +270,29 @@ class QueryDataSimple(BaseResource):
     def get(self):
         return self.res['values']
 
-api.add_resource(QueryDataSimple, '/jsonrpc/GetMetaDataLocation')
+api.add_resource(QueryDataSimple, '/QueryDataSimple')
+
+class QueryDataByTime(BaseResource):
+    keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
+    method_decorators = [check_api_key_and_req_type]
+    def __init__(self):
+        self.res = db.engine.execute(SQL['QueryDataRaw'],
+                                 request.args).fetchone()[0]
+    def get(self):
+        template = j2.get_template('query_data_by_time.xml.j2')
+        rows = []
+        for i,t in enumerate(self.res['values']['time']):
+            rows.append([t, self.res['measurement'], self.res['values']['value'][i], self.res['units']])
+        payload = template.render(rows=rows)
+        return payload
+
+api.add_resource(QueryDataByTime, '/QueryDataByTime')
+
+class ListQACodes(BaseResource):
+    keys = []
+    method_decorators = [check_api_key_and_req_type]
+
+api.add_resource(ListQACodes, '/ListQACodes')
 
 
 # TODO: could dry this up by making a helper function for the API
@@ -289,7 +315,9 @@ routing_dict = {
          'GetStationStatus' : GetStationStatus,
          'QueryDataRaw' : QueryDataRaw,
          'jsonrpc_cdrh.GetMetaDataLocation' : GetMetaDataLocation,
-         'jsonrpc_cdrh.QueryDataSimple' : QueryDataSimple
+         'jsonrpc_cdrh.QueryDataSimple' : QueryDataSimple,
+         'QueryDataByTime': QueryDataByTime,
+         'ListQACodes' : ListQACodes
         }
 
 
