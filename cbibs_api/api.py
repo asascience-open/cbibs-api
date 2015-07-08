@@ -333,7 +333,22 @@ routing_dict = {
          'GetMetaDataLocation' : GetMetaDataLocation,
          'QueryDataSimple' : QueryDataSimple,
          'QueryDataByTime': QueryDataByTime,
-         'ListQACodes' : ListQACodes
+         'ListQACodes' : ListQACodes,
+         'xmlrpc_cdrh.ListStationsWithParam' : ListStationsWithParam,
+         'xmlrpc_cdrh.RetrieveCurrentReadings' : RetrieveCurrentReadings, 
+         'xmlrpc_cdrh.LastMeasurementTime' : LastMeasurementTime,
+         'xmlrpc_cdrh.QueryData' : QueryData,
+         'xmlrpc_cdrh.ListConstellations' : ListConstellations,
+         'xmlrpc_cdrh.ListQACodes' : ListQACodes,
+         'xmlrpc_cdrh.ListPlatforms' : ListPlatforms,
+         'xmlrpc_cdrh.ListParameters' : ListParameters,
+         'xmlrpc_cdrh.GetNumberMeasurements' : GetNumberMeasurements,
+         'xmlrpc_cdrh.RetrieveCurrentSuperSet' : RetrieveCurrentSuperSet,
+         'xmlrpc_cdrh.GetStationStatus' : GetStationStatus,
+         'xmlrpc_cdrh.QueryDataByTime' : QueryDataByTime,
+         'xmlrpc_cdrh.GetMetaDataLocation' : GetMetaDataLocation,
+         'xmlrpc_cdrh.QueryDataSimple' : QueryDataSimple,
+         'xmlrpc_cdrh.QueryDataRaw' : QueryDataRaw
         }
 
 

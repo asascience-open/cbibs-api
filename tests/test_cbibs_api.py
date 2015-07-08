@@ -48,6 +48,8 @@ class TestJsonApi(TestCase):
     def make_xml_payload(self, method_name, arglist=[], use_api_key=True):
         if use_api_key:
             arglist = arglist + [self.API_KEY]
+        if 'system' not in method_name:
+            method_name = 'xmlrpc_cdrh.' + method_name
         payload = self.xml_template.render(method_name=method_name, params=arglist)
         r = self.client.post('/', data=payload, headers=XML_HEADERS)
         return r
