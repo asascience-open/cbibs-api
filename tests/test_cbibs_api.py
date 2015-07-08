@@ -63,42 +63,16 @@ class TestJsonApi(TestCase):
         assert (no_api_key_response.json['error'] ==
                 "Incorrect API key, or API key not supplied")
 
-    def test_Test(self):
-        """Tests the Test function"""
-        # test legacy API endpoint first
-        expected = 'Test successful'
-        post_response = self.make_json_payload('Test')
-        # check to make sure we have a 200 response
-        assert post_response.status_code == 200
-        assert post_response.json['result'] == expected
-        # now test new GET enpoint
-        get_response = self.client.get("/Test?api_key={}".format(self.API_KEY),
-                                       headers=JSON_HEADERS)
-        assert get_response.json == expected
-
-    def test_ListConstellations(self):
+    def test_list_constellations(self):
         """Test that CBIBS is among the list of constellations"""
-        get_response = self.client.get("/ListConstellations?api_key={}".format(self.API_KEY),
-                                       headers=JSON_HEADERS)
-        assert get_response.status_code == 200
-        assert 'CBIBS' in get_response.json
-        post_response = self.make_json_payload("ListConstellations")
-        assert 'CBIBS' in post_response.json['result']
-
         post_response = self.make_xml_payload("ListConstellations")
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)
         xpath_res = root.xpath(".//value/array/data/value/string[text()='CBIBS']")
         assert len(xpath_res) == 1
 
-    def test_ListPlatforms(self):
+    def test_list_platforms(self):
         """Test the platforms, check if Jamestown is present"""
-        req_str = "/ListPlatforms?api_key={}&constellation={}".format(self.API_KEY,
-                                                                      'CBIBS',)
-        # GET response to REST endpoint
-        get_response = self.client.get(req_str, headers=JSON_HEADERS)
-        assert get_response.status_code == 200
-        assert 'J' in get_response.json['id']
 
         # POST response to legacy JSONRPC endpoint
         post_response = self.make_json_payload('ListPlatforms', ["CBIBS"])
@@ -114,7 +88,7 @@ class TestJsonApi(TestCase):
                                "/value/string[text()='J']")
         assert len(xpath_res) == 1
 
-    def test_QueryData(self):
+    def test_query_data(self):
         arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2014-08-01',
                     '2014-08-02']
         post_response = self.make_json_payload('QueryData', arg_arr)
@@ -195,7 +169,7 @@ class TestJsonApi(TestCase):
 
         assert len(times) == len(values) and len(values) > 3
 
-    def test_GetNumberMeasurements(self):
+    def test_get_number_measurements(self):
         arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2014-08-01',
                    '2014-08-02']
         post_response = self.make_json_payload('GetNumberMeasurements', arg_arr)
@@ -211,7 +185,7 @@ class TestJsonApi(TestCase):
         xpath_res = root.xpath(".//param/value/int[text()='23']")
         assert len(xpath_res) == 1
 
-    def test_LastMeasurementTime(self):
+    def test_last_measurement_time(self):
         arg_arr = ['CBIBS', 'J', 'sea_water_salinity']
         post_response = self.make_json_payload('LastMeasurementTime', arg_arr)
         json_response = json.loads(post_response.data)
@@ -228,7 +202,7 @@ class TestJsonApi(TestCase):
         obs_date = dateparse(xpath_res[0].text)
         assert obs_date > datetime(2014,8,1)
 
-    def test_RetrieveCurrentReadings(self):
+    def test_retrieve_current_readings(self):
         arg_arr = ['CBIBS', 'J']
         post_response = self.make_json_payload('RetrieveCurrentReadings', arg_arr)
         json_response = json.loads(post_response.data)
@@ -249,7 +223,7 @@ class TestJsonApi(TestCase):
         xpath_res = root.xpath(".//member[name/text()='value']/value/array/data/value/double")
         assert len(xpath_res) > 3
 
-    def test_ListStationsWithParam(self):
+    def test_list_stations_with_param(self):
         arg_arr = ['CBIBS', 'sea_water_salinity']
         post_response = self.make_json_payload('ListStationsWithParam',
                                                arg_arr)
@@ -283,7 +257,7 @@ class TestJsonApi(TestCase):
         xpath_res = root.xpath(".//value/array/data/value/string[text()='sea_water_temperature']")
         assert len(xpath_res) == 1
 
-    def test_RetrieveCurrentSuperSet(self):
+    def test_retrieve_current_super_set(self):
         arg_arr = ['WQJ']
         post_response = self.make_json_payload('RetrieveCurrentSuperSet', arg_arr)
         json_response = json.loads(post_response.data)
@@ -364,7 +338,7 @@ class TestJsonApi(TestCase):
         xpath_res = root.xpath(".//value/int")
         assert xpath_res[0].text == "0"
 
-    def test_QueryDataRaw(self):
+    def test_query_data_raw(self):
         arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2014-08-01',
                     '2014-08-02']
         post_response = self.make_json_payload('QueryDataRaw', arg_arr)

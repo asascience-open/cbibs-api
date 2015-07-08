@@ -13,7 +13,7 @@ JOIN cbibs.d_qa_code_primary qc ON qc.id = o.d_qa_code_primary_id
 WHERE 
     measure_ts AT TIME ZONE 'UTC' > %(beg_date)s
     AND measure_ts AT TIME ZONE 'UTC' < %(end_date)s
-    AND s.description = %(stationid)s
+    AND s.description = %(station)s
     AND pr.organization = %(constellation)s
     AND v.actual_name = %(measurement)s
     AND qc.qa_code = 1

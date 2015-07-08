@@ -11,7 +11,7 @@ See LICENSE.txt
 '''
 
 from cbibs_api import app
-import cbibs_api.controller 
+from cbibs_api.api import api
 
 if __name__ == '__main__':
     app.run(host=app.config['HOST'], port=app.config['PORT'])

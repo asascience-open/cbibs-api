@@ -1,0 +1,5 @@
+{
+  "method":"GetMetaDataLocation",
+  "params":["CBIBS","J", "xxxxxxxxxxxxxxxxxxxxxxxxxxx"],
+  "id":1
+}

@@ -1,0 +1,5 @@
+{
+  "method":"ListStationsWithParam",
+  "params":["CBIBS","sea_water_salinity","xxxxxxxxxxxxxxxxxxxxxxxxxxx"],
+  "id":1
+}

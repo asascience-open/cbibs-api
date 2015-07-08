@@ -1,0 +1,5 @@
+{
+  "method":"RetrieveCurrentReadings",
+  "params":["CBIBS","J","xxxxxxxxxxxxxxxxxxxxxxxxxxx"],
+  "id":1
+}
