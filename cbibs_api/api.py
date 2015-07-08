@@ -165,9 +165,16 @@ class QueryData(BaseResource):
     keys = ['constellation', 'stationid', 'measurement',
             'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
+
     def get(self):
-        return db.engine.execute(SQL[self.__class__.__name__],
-                                 request.args).fetchone()[0]
+        return {
+            'measurement' : self.res['measurement'][0],
+            'units' : self.res['units'][0],
+            'values' : {
+                'time' : self.res['time'],
+                'value' : [float(v) for v in self.res['value']]
+            }
+        }
 
 api.add_resource(QueryData, '/QueryData')
 
@@ -242,11 +249,15 @@ class QueryDataRaw(BaseResource):
     keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
 
-    def __init__(self):
-        self.res = db.engine.execute(SQL[self.__class__.__name__],
-                                 request.args).fetchone()[0]
     def get(self):
-        return self.res
+        return {
+            'measurement' : self.res['measurement'][0],
+            'units' : self.res['units'][0],
+            'values' : {
+                'time' : self.res['time'],
+                'value' : [float(v) for v in self.res['value']]
+            }
+        }
 
 api.add_resource(QueryDataRaw, '/QueryDataRaw')
 
@@ -267,12 +278,13 @@ class QueryDataSimple(BaseResource):
     method_decorators = [check_api_key_and_req_type]
     
     def __init__(self):
-        self.res = db.engine.execute(SQL['QueryDataRaw'],
-                                 request.args).fetchone()[0]
+        self.res = self.result_simple(sql_name_override='QueryData')
+
     def get(self):
-        retval = self.res['values']
-        retval['value'] = [float(i) for i in retval['value']]
-        return retval
+        return {
+            'time' : self.res['time'],
+            'value' : [float(v) for v in self.res['value']]
+        }
 
 api.add_resource(QueryDataSimple, '/QueryDataSimple')
 
@@ -280,13 +292,13 @@ class QueryDataByTime(BaseResource):
     keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
     def __init__(self):
-        self.res = db.engine.execute(SQL['QueryDataRaw'],
-                                 request.args).fetchone()[0]
+        self.res = self.result_simple(sql_name_override='QueryData')
+
     def get(self):
         template = j2.get_template('query_data_by_time.xml.j2')
         rows = []
-        for i,t in enumerate(self.res['values']['time']):
-            rows.append([t, self.res['measurement'], self.res['values']['value'][i], self.res['units']])
+        for i,t in enumerate(self.res['time']):
+            rows.append([t, self.res['measurement'][i], self.res['value'][i], self.res['units'][i]])
         payload = template.render(rows=rows)
         return payload
 
@@ -333,13 +345,14 @@ class BaseApi(Resource):
 
     # TODO: Add more canonical RPC error returns depending on spec requested
     def get(self):
+
         return OrderedDict([('id', 1),
                             ('error', 'Please use POST for the legacy API endpoint'),
                             ('result', None)])
 
     def post(self):
-        if ('application/xml' in request.accept_mimetypes or
-            'text/xml' in request.accept_mimetypes):
+
+        if 'application/xml' in request.accept_mimetypes or 'text/xml' in request.accept_mimetypes:
             payload = xmlrpc_client.loads(request.data)
             # load xmlrpc method
             api_endpoint = routing_dict[payload[1]]

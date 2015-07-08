@@ -49,7 +49,6 @@ class TestJsonApi(TestCase):
         if use_api_key:
             arglist = arglist + [self.API_KEY]
         payload = self.xml_template.render(method_name=method_name, params=arglist)
-        print payload
         r = self.client.post('/', data=payload, headers=XML_HEADERS)
         return r
 
