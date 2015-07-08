@@ -60,3 +60,11 @@ def check_api_key_and_req_type(fn):
             return jsonify_status({'id': 1, 'error': 'Invalid request method. Currently supported request methods: [GET, POST]',
                             'result': None}, 405)
     return wrapper
+
+def request_wants_json():
+    best = request.accept_mimetypes.best_match(['application/json'])
+    return best == 'application/json' and request.accept_mimetypes[best] > request.accept_mimetypes['text/html']
+
+def request_wants_xml():
+    best = request.accept_mimetypes.best_match(['text/xml','application/xml'])
+    return best in ('text/xml', 'application/xml')

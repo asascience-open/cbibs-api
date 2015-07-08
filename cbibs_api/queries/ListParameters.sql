@@ -1,16 +1,11 @@
 -- ListParameters
-WITH groups AS (
-    SELECT
-        DISTINCT ON (s.description, svs.d_variable_id)
-        s.description,
-        svs.d_variable_id
-    FROM cbibs.d_sensor_variable_station svs
-    JOIN cbibs.d_station s ON s.id = svs.d_station_id
-    JOIN cbibs.d_provider pr ON pr.id = s.d_provider_id
-    WHERE s.description='J'
-        AND pr.organization = 'CBIBS'
-)
 SELECT
-    v.actual_name
-FROM cbibs.d_variable v
-JOIN groups g ON v.id=g.d_variable_id;
+    cbibs.depth_naming(actual_name, elevation) as measurement
+FROM cbibs.v_elevations
+WHERE
+    description = %(stationid)s
+    AND organization = %(constellation)s
+    -- We don't support depth binned parameters yet
+    AND actual_name not in ('current_velocity', 'current_direction')
+ORDER BY actual_name;
+

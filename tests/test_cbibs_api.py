@@ -48,8 +48,9 @@ class TestJsonApi(TestCase):
     def make_xml_payload(self, method_name, arglist=[], use_api_key=True):
         if use_api_key:
             arglist = arglist + [self.API_KEY]
+        if 'system' not in method_name:
+            method_name = 'xmlrpc_cdrh.' + method_name
         payload = self.xml_template.render(method_name=method_name, params=arglist)
-        print payload
         r = self.client.post('/', data=payload, headers=XML_HEADERS)
         return r
 
@@ -266,10 +267,11 @@ class TestJsonApi(TestCase):
         xpath_res = root.xpath(".//value/array/data/value")
         assert len(xpath_res) > 3
 
-    def test_ListParameters(self):
+    def test_list_parameters(self):
         arg_arr = ['CBIBS', 'J']
         post_response = self.make_json_payload('ListParameters', arg_arr)
         json_response = json.loads(post_response.data)
+        assert 'sea_water_salinity' in json_response['result']
         assert len(json_response['result']) > 0
         assert json_response['error'] is None
         
