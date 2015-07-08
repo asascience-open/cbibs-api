@@ -153,7 +153,7 @@ class ListStationsWithParam(BaseResource):
 api.add_resource(ListStationsWithParam, '/ListStationsWithParam')
 
 class ListParameters(BaseResource):
-    keys = ['constellation', 'station']
+    keys = ['constellation', 'stationid']
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(result_only=True)
