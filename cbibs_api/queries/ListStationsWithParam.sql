@@ -1,7 +1,7 @@
-SELECT st.description
-FROM cbibs.d_station_variable_ob_stats sv
-JOIN cbibs.d_station st ON st.id = sv.d_station_id
-JOIN cbibs.d_provider pr ON pr.id = st.d_provider_id
-JOIN cbibs.d_variable v ON v.id = sv.d_variable_id
-WHERE pr.organization = %(constellation)s 
-    AND v.actual_name = %(parameter)s;
+-- ListStationsWithParam
+SELECT 
+    description
+FROM cbibs.v_elevations
+WHERE 
+    cbibs.depth_naming(actual_name, elevation) = %(parameter)s
+    AND organization = %(constellation)s;
