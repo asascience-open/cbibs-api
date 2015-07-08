@@ -63,28 +63,8 @@ class TestJsonApi(TestCase):
         assert (no_api_key_response.json['error'] ==
                 "Incorrect API key, or API key not supplied")
 
-    def test_Test(self):
-        """Tests the Test function"""
-        # test legacy API endpoint first
-        expected = 'Test successful'
-        post_response = self.make_json_payload('Test')
-        # check to make sure we have a 200 response
-        assert post_response.status_code == 200
-        assert post_response.json['result'] == expected
-        # now test new GET enpoint
-        get_response = self.client.get("/Test?api_key={}".format(self.API_KEY),
-                                       headers=JSON_HEADERS)
-        assert get_response.json == expected
-
     def test_ListConstellations(self):
         """Test that CBIBS is among the list of constellations"""
-        get_response = self.client.get("/ListConstellations?api_key={}".format(self.API_KEY),
-                                       headers=JSON_HEADERS)
-        assert get_response.status_code == 200
-        assert 'CBIBS' in get_response.json
-        post_response = self.make_json_payload("ListConstellations")
-        assert 'CBIBS' in post_response.json['result']
-
         post_response = self.make_xml_payload("ListConstellations")
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)
@@ -93,12 +73,6 @@ class TestJsonApi(TestCase):
 
     def test_ListPlatforms(self):
         """Test the platforms, check if Jamestown is present"""
-        req_str = "/ListPlatforms?api_key={}&constellation={}".format(self.API_KEY,
-                                                                      'CBIBS',)
-        # GET response to REST endpoint
-        get_response = self.client.get(req_str, headers=JSON_HEADERS)
-        assert get_response.status_code == 200
-        assert 'J' in get_response.json['id']
 
         # POST response to legacy JSONRPC endpoint
         post_response = self.make_json_payload('ListPlatforms', ["CBIBS"])

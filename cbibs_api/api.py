@@ -96,27 +96,16 @@ class BaseResource(Resource):
         description = 'CDRH %(protocol)s %(resource)s Function (%(arguments)s)' % locals()
         return getattr(cls, 'helpstring', None) or description
 
-class Test(BaseResource):
-    keys = []
-    method_decorators = [check_api_key_and_req_type]
-    def get(self):
-        return self.result_simple(result_only=True, singleton_result=True)
-
-api.add_resource(Test, '/Test')
-
 class ListConstellations(BaseResource):
     keys = []
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(result_only=True)
 
-api.add_resource(ListConstellations, '/ListConstellations')
 
 class ListPlatforms(BaseResource):
     keys = ['constellation']
     method_decorators = [check_api_key_and_req_type]
-
-api.add_resource(ListPlatforms, '/ListPlatforms')
 
 
 class GetNumberMeasurements(BaseResource):
@@ -126,15 +115,11 @@ class GetNumberMeasurements(BaseResource):
     def get(self):
         return self.result_simple(result_only=True, singleton_result=True)
 
-api.add_resource(GetNumberMeasurements, '/GetNumberMeasurements')
-
 class LastMeasurementTime(BaseResource):
     keys = ['constellation', 'stationid', 'measurement']
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return str(self.result_simple(result_only=True, singleton_result=True))
-
-api.add_resource(LastMeasurementTime, '/LastMeasurementTime')
 
 class RetrieveCurrentReadings(BaseResource):
     keys = ['constellation', 'station']
@@ -142,23 +127,17 @@ class RetrieveCurrentReadings(BaseResource):
     def get(self):
         return self.result_simple(reflect_params=True)
 
-api.add_resource(RetrieveCurrentReadings, '/RetrieveCurrentReadings')
-
 class ListStationsWithParam(BaseResource):
     keys = ['constellation', 'parameter']
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(result_only=True)
 
-api.add_resource(ListStationsWithParam, '/ListStationsWithParam')
-
 class ListParameters(BaseResource):
     keys = ['constellation', 'stationid']
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(result_only=True)
-
-api.add_resource(ListParameters, '/ListParameters')
 
 class QueryData(BaseResource):
     """Fetches data within a time range"""
@@ -176,15 +155,11 @@ class QueryData(BaseResource):
             }
         }
 
-api.add_resource(QueryData, '/QueryData')
-
 class RetrieveCurrentSuperSet(BaseResource):
     keys = ['superset']
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple()
-
-api.add_resource(RetrieveCurrentSuperSet, '/RetrieveCurrentSuperSet')
 
 class ListMethods(BaseResource):
     keys = []
@@ -194,8 +169,6 @@ class ListMethods(BaseResource):
     def get(self):
         return self.res
 
-api.add_resource(ListMethods, '/system/listMethods')
-
 class MethodHelp(BaseResource):
     keys = ['methodname']
     def __init__(self):
@@ -204,16 +177,12 @@ class MethodHelp(BaseResource):
     def get(self):
         return self.res
 
-api.add_resource(MethodHelp, '/system/methodHelp')
-
 class MethodSignature(BaseResource):
     keys = ['methodname']
     def __init__(self):
         cls = routing_dict[request.args['methodname']]
         args = cls.keys or []
         self.res = [[cls.return_type] + ["string" for s in args]] # Nested lists on purpose
-
-api.add_resource(MethodSignature, '/system/methodSignature')
 
 class GetCapabilities(BaseResource):
     keys = []
@@ -233,17 +202,12 @@ class GetCapabilities(BaseResource):
             }
         }
 
-api.add_resource(GetCapabilities, '/system/getCapabilities')
-
 class GetStationStatus(BaseResource):
     keys = ['constellation', 'station']
     method_decorators = [check_api_key_and_req_type]
     return_type = "int"
     def get(self):
         return int(not self.res)
-
-api.add_resource(GetStationStatus, '/GetStationStatus')
-
 
 class QueryDataRaw(BaseResource):
     keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
@@ -259,8 +223,6 @@ class QueryDataRaw(BaseResource):
             }
         }
 
-api.add_resource(QueryDataRaw, '/QueryDataRaw')
-
 class GetMetaDataLocation(BaseResource):
     keys = ['constellation', 'stationid']
     method_decorators = [check_api_key_and_req_type]
@@ -270,8 +232,6 @@ class GetMetaDataLocation(BaseResource):
             'latitude':self.res['latitude'][0],
             'longitude':self.res['longitude'][0]
         }
-
-api.add_resource(GetMetaDataLocation, '/jsonrpc/GetMetaDataLocation')
 
 class QueryDataSimple(BaseResource):
     keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
@@ -285,8 +245,6 @@ class QueryDataSimple(BaseResource):
             'time' : self.res['time'],
             'value' : [float(v) for v in self.res['value']]
         }
-
-api.add_resource(QueryDataSimple, '/QueryDataSimple')
 
 class QueryDataByTime(BaseResource):
     keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
@@ -302,19 +260,14 @@ class QueryDataByTime(BaseResource):
         payload = template.render(rows=rows)
         return payload
 
-api.add_resource(QueryDataByTime, '/QueryDataByTime')
-
 class ListQACodes(BaseResource):
     keys = []
     method_decorators = [check_api_key_and_req_type]
-
-api.add_resource(ListQACodes, '/ListQACodes')
 
 
 # TODO: could dry this up by making a helper function for the API
 # instead of repeating every time
 routing_dict = {
-         'Test': Test,
          'ListConstellations': ListConstellations,
          'ListPlatforms': ListPlatforms,
          'ListStationsWithParam': ListStationsWithParam,
@@ -404,6 +357,3 @@ class BaseApi(Resource):
 
 
 api.add_resource(BaseApi, '/')
-
-if __name__ == '__main__':
-    app.run(debug=True)
