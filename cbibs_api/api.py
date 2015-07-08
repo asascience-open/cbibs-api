@@ -109,14 +109,14 @@ class ListPlatforms(BaseResource):
 
 
 class GetNumberMeasurements(BaseResource):
-    keys = ['constellation', 'stationid', 'measurement',
+    keys = ['constellation', 'station', 'measurement',
             'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(result_only=True, singleton_result=True)
 
 class LastMeasurementTime(BaseResource):
-    keys = ['constellation', 'stationid', 'measurement']
+    keys = ['constellation', 'station', 'measurement']
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return str(self.result_simple(result_only=True, singleton_result=True))
@@ -134,14 +134,14 @@ class ListStationsWithParam(BaseResource):
         return self.result_simple(result_only=True)
 
 class ListParameters(BaseResource):
-    keys = ['constellation', 'stationid']
+    keys = ['constellation', 'station']
     method_decorators = [check_api_key_and_req_type]
     def get(self):
         return self.result_simple(result_only=True)
 
 class QueryData(BaseResource):
     """Fetches data within a time range"""
-    keys = ['constellation', 'stationid', 'measurement',
+    keys = ['constellation', 'station', 'measurement',
             'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
 
@@ -210,7 +210,7 @@ class GetStationStatus(BaseResource):
         return int(not self.res)
 
 class QueryDataRaw(BaseResource):
-    keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
+    keys = ['constellation', 'station', 'measurement', 'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
 
     def get(self):
@@ -224,7 +224,7 @@ class QueryDataRaw(BaseResource):
         }
 
 class GetMetaDataLocation(BaseResource):
-    keys = ['constellation', 'stationid']
+    keys = ['constellation', 'station']
     method_decorators = [check_api_key_and_req_type]
 
     def get(self):
@@ -234,7 +234,7 @@ class GetMetaDataLocation(BaseResource):
         }
 
 class QueryDataSimple(BaseResource):
-    keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
+    keys = ['constellation', 'station', 'measurement', 'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
     
     def __init__(self):
@@ -247,7 +247,7 @@ class QueryDataSimple(BaseResource):
         }
 
 class QueryDataByTime(BaseResource):
-    keys = ['constellation', 'stationid', 'measurement', 'beg_date', 'end_date']
+    keys = ['constellation', 'station', 'measurement', 'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
     def __init__(self):
         self.res = self.result_simple(sql_name_override='QueryData')
@@ -301,7 +301,9 @@ routing_dict = {
          'xmlrpc_cdrh.QueryDataByTime' : QueryDataByTime,
          'xmlrpc_cdrh.GetMetaDataLocation' : GetMetaDataLocation,
          'xmlrpc_cdrh.QueryDataSimple' : QueryDataSimple,
-         'xmlrpc_cdrh.QueryDataRaw' : QueryDataRaw
+         'xmlrpc_cdrh.QueryDataRaw' : QueryDataRaw,
+         'jsonrpc_cdrh.GetMetaDataLocation' : GetMetaDataLocation,
+         'jsonrpc_cdrh.QueryDataSimple' : QueryDataSimple
         }
 
 
