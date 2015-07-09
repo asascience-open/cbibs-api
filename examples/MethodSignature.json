@@ -1,0 +1,5 @@
+{
+  "method":"system.methodSignature",
+  "params":["system.getCapabilities"],
+  "id":1
+}

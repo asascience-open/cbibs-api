@@ -10,10 +10,10 @@ Copyright 2015 RPS ASA
 See LICENSE.txt
 '''
 
-from flask import request, Response
+from flask import request, Response, jsonify
 from flask_restful import Resource
 from cbibs_api import app, api, db
-from cbibs_api.utils import check_api_key_and_req_type
+from cbibs_api.utils import check_api_key_and_req_type, UnauthorizedError, request_wants_xml, request_wants_json
 from cbibs_api.queries import SQL
 from defusedxml.xmlrpc import xmlrpc_client
 from collections import OrderedDict
@@ -311,8 +311,6 @@ class BaseApi(Resource):
     """Base API which responds to XMLRPC and JSONRPC methods.  This delegates
        to the REST API methods, but adds fields/functionality as needed to
        emulate RPC."""
-    method_decorators = [check_api_key_and_req_type]
-
     # TODO: Add more canonical RPC error returns depending on spec requested
     def get(self):
 
@@ -320,42 +318,70 @@ class BaseApi(Resource):
                             ('error', 'Please use POST for the legacy API endpoint'),
                             ('result', None)])
 
-    def post(self):
+    def parse_args(self):
+        if 'xml' in request.content_type:
+            return self.parse_xml()
+        return self.parse_json()
 
-        if 'application/xml' in request.accept_mimetypes or 'text/xml' in request.accept_mimetypes:
-            payload = xmlrpc_client.loads(request.data)
-            # load xmlrpc method
-            api_endpoint = routing_dict[payload[1]]
-            request.args = dict(zip(api_endpoint.keys, payload[0]))
-        else:
-            # TODO: handle both jsonrpc and xmlrpc requests
-            json_req = request.get_json(force=True)
-            # grab the api method
-            api_endpoint = routing_dict[json_req.pop('method')]
-            if 'params' in json_req:
-                params = json_req['params']
-                # consider eliminating side effects, makes this difficult
-                # to understand
-                if api_endpoint.keys:
-                    json_req.update(dict(zip(api_endpoint.keys, json_req['params'])))
-                request.args = json_req
+    def parse_json(self):
+        # TODO: handle both jsonrpc and xmlrpc requests
+        json_req = request.get_json(force=True)
+        # grab the api method
+        self.api_endpoint = routing_dict[json_req.pop('method')]
+        if 'params' in json_req:
+            params = json_req['params']
+            # consider eliminating side effects, makes this difficult
+            # to understand
+            if self.api_endpoint.keys:
+                json_req.update(dict(zip(self.api_endpoint.keys, json_req['params'])))
+
+        return json_req
+
+    def parse_xml(self):
+        payload = xmlrpc_client.loads(request.data)
+        # load xmlrpc method
+        self.api_endpoint = routing_dict[payload[1]]
+        return dict(zip(self.api_endpoint.keys, payload[0]))
+
+    def post(self):
+        request.args = self.parse_args()
+
         # call api endpoint with current request context
         # and switch request method to get
-        res = api_endpoint().get()
+        try:
+            resource = self.api_endpoint()
+            get_method = resource.get
+            for wrapper in getattr(resource, 'method_decorators', []):
+                get_method = wrapper(get_method)
+            res = get_method()
+        except UnauthorizedError as e:
+            return self.return_error(e.message, 401)
+        except Exception as e:
+            raise
+            return self.return_error(e.message, 400)
         # TODO: handle bad endpoint request
         # return a JSONRPC formed response if coming from POST
-        if (request.content_type == 'application/json' and
-            request.method == 'POST'):
+
+        if request_wants_json():
             return OrderedDict([('id', 1), ('error', None), ('result', res)])
-        # return XML in XMLRPC format if XML is requested, or if it's a GET
-        # request, return only the result from the REST API
-        elif 'xml' in request.content_type:
+
+
+        elif request_wants_xml():
             if hasattr(res, '__dict__'):
                 xml_str = xmlrpc_client.dumps((dict(res),), methodresponse=True)
             else:
                 xml_str = xmlrpc_client.dumps((res,), methodresponse=True)
             return Response(xml_str, mimetype='text/xml')
-        return jsonify(error='Invalid request'), 400
+
+        return {"error":'Invalid request'}, 400
+
+
+    def return_error(self, message, code):
+        if request_wants_xml():
+            payload = xmlrpc_client.dumps({'error':message}, methodresponse=True)
+            return Response(payload, mimetype='text/xml'), code
+        return {'id':1, 'error':message, 'result':None}, code
+
 
 
 api.add_resource(BaseApi, '/')

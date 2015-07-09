@@ -1,0 +1,5 @@
+{
+  "method":"system.getCapabilities",
+  "params":[],
+  "id":1
+}

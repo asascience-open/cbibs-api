@@ -5,6 +5,9 @@ from cbibs_api.queries import SQL
 from collections import OrderedDict
 from defusedxml.xmlrpc import xmlrpc_client
 
+class UnauthorizedError(Exception):
+    pass
+
 def jsonify_status(json_dict, response_code=200):
     """
     Helper function to return JSON response for Flask with an optionally
@@ -30,8 +33,7 @@ def check_api_key_and_req_type(fn):
             current_key = request.args.get('api_key')
             if current_key == app.config['API_KEY']:
                 return fn(*args, **kwargs)
-            else:
-                return jsonify_status({'error': 'Incorrect API key, or API key not supplied'}, 401)
+            raise UnauthorizedError('Incorrect API key, or API key not supplied')
         elif request.method == 'POST':
             try:
                 if ('application/xml' in request.accept_mimetypes or
@@ -53,12 +55,7 @@ def check_api_key_and_req_type(fn):
                 current_key = None
             if current_key == app.config['API_KEY']:
                 return fn(*args, **kwargs)
-            else:
-                return jsonify_status({'id': 1, 'error': 'Incorrect API key, or no API key specified',
-                                'result': None}, 401)
-        else:
-            return jsonify_status({'id': 1, 'error': 'Invalid request method. Currently supported request methods: [GET, POST]',
-                            'result': None}, 405)
+        raise UnauthorizedError('Incorrect API key, or no API key specified')
     return wrapper
 
 def request_wants_json():
