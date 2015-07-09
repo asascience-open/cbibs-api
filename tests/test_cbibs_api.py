@@ -54,15 +54,6 @@ class TestJsonApi(TestCase):
         r = self.client.post('/', data=payload, headers=XML_HEADERS)
         return r
 
-    def test_bad_input(self):
-        """Make sure garbage/bad input returns proper responses, etc."""
-        # test with no API specifed and no login
-        no_api_key_response = self.client.get("/".format(self.API_KEY),
-                                              headers=JSON_HEADERS)
-        assert no_api_key_response.status_code == 401
-        assert (no_api_key_response.json['error'] ==
-                "Incorrect API key, or API key not supplied")
-
     def test_list_constellations(self):
         """Test that CBIBS is among the list of constellations"""
         post_response = self.make_xml_payload("ListConstellations")
@@ -495,6 +486,14 @@ class TestJsonApi(TestCase):
         root = etree.fromstring(post_response.data)
         xpath_res = root.xpath(".//struct/member[name/text()='qacode']/value/array/data/value")
         assert len(xpath_res) == 6
+
+    def test_auth_vs_noauth(self):
+        post_response = self.make_json_payload('system.listMethods', [], use_api_key=False)
+        assert post_response.status_code == 200
+
+        arg_arr = ['CBIBS', 'J', 'sea_water_temperature', '2015-05-01', '2015-05-01T06:00']
+        post_response = self.make_json_payload('QueryDataSimple', arg_arr, use_api_key=False)
+        assert post_response.status_code == 401
 
 if __name__ == '__main__':
     unittest.main()
