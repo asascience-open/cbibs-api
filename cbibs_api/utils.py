@@ -1,5 +1,5 @@
 from cbibs_api import app, db
-from flask import jsonify, request
+from flask import jsonify, request, current_app
 from functools import wraps
 from cbibs_api.queries import SQL
 from collections import OrderedDict
@@ -63,5 +63,6 @@ def request_wants_json():
     return best == 'application/json' and request.accept_mimetypes[best] > request.accept_mimetypes['text/html']
 
 def request_wants_xml():
+    current_app.logger.info(request.accept_mimetypes)
     best = request.accept_mimetypes.best_match(['text/xml','application/xml'])
-    return best in ('text/xml', 'application/xml')
+    return best in ('text/xml', 'application/xml') and request.accept_mimetypes[best] > request.accept_mimetypes['text/html']

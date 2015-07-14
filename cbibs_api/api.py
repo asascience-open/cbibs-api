@@ -241,6 +241,8 @@ class QueryDataSimple(BaseResource):
         self.res = self.result_simple(sql_name_override='QueryData')
 
     def get(self):
+        if not self.res:
+            return {'time':[], 'value':[]}
         return {
             'time' : self.res['time'],
             'value' : [float(v) for v in self.res['value']]
@@ -362,18 +364,13 @@ class BaseApi(Resource):
         # TODO: handle bad endpoint request
         # return a JSONRPC formed response if coming from POST
 
-        if request_wants_json():
-            return OrderedDict([('id', 1), ('error', None), ('result', res)])
-
-
-        elif request_wants_xml():
+        if request_wants_xml():
             if hasattr(res, '__dict__'):
                 xml_str = xmlrpc_client.dumps((dict(res),), methodresponse=True)
             else:
                 xml_str = xmlrpc_client.dumps((res,), methodresponse=True)
             return Response(xml_str, mimetype='text/xml')
-
-        return {"error":'Invalid request'}, 400
+        return OrderedDict([('id', 1), ('error', None), ('result', res)])
 
 
     def return_error(self, message, code):
