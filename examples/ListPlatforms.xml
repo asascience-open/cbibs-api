@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<methodCall>
+<methodName>ListPlatforms</methodName>
+<params>
+<param><value><string>cbibs</string></value></param>
+<param><value><string>xxxxxxxxxxxxxxxxxxxxxxxxxxx</string></value></param>
+</params>
+</methodCall>
+

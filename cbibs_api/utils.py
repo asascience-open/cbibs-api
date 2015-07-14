@@ -1,9 +1,10 @@
 from cbibs_api import app, db
-from flask import jsonify, request, current_app
+from flask import jsonify, request, current_app, make_response
 from functools import wraps
 from cbibs_api.queries import SQL
 from collections import OrderedDict
 from defusedxml.xmlrpc import xmlrpc_client
+import json
 
 class UnauthorizedError(Exception):
     pass
@@ -36,19 +37,15 @@ def check_api_key_and_req_type(fn):
             raise UnauthorizedError('Incorrect API key, or API key not supplied')
         elif request.method == 'POST':
             try:
-                if ('application/xml' in request.accept_mimetypes or
-                     'text/xml' in request.accept_mimetypes):
+                if request.content_type == 'text/xml':
                     payload = xmlrpc_client.loads(request.data)
                     current_key = payload[0][-1]
                 else:
                     json_req = request.get_json(force=True, silent=True)
                     # if a non empty or valid JSON response, try to grab the key
-                    if json_req:
-                        # current key should always be specified last by in request
-                        # parameters
-                        # attempt to pop off the API key since we won't need it
-                        # for verification more than once
-                        current_key = json_req.get('params').pop()
+                    if not json_req:
+                        raise UnauthorizedError('Incorrect API key, or API key not supplied') 
+                    current_key = json_req.get('params').pop()
                 # if the get returns none and tries to index (TypeError),
                 # or params is empty (IndexError) return None
             except TypeError, IndexError:
@@ -66,3 +63,18 @@ def request_wants_xml():
     current_app.logger.info(request.accept_mimetypes)
     best = request.accept_mimetypes.best_match(['text/xml','application/xml'])
     return best in ('text/xml', 'application/xml') and request.accept_mimetypes[best] > request.accept_mimetypes['text/html']
+
+def output_json(data, code, headers=None):
+    res = {'id' : 1, 'result' : data, 'error': None}
+    response = make_response(json.dumps(res), code)
+    response.headers.extend(headers or {})
+    return response
+
+def output_xml(data, code, headers=None):
+    if hasattr(data, '__dict__'):
+        xml_str = xmlrpc_client.dumps((dict(data),), methodresponse=True)
+    else:
+        xml_str = xmlrpc_client.dumps((data,), methodresponse=True)
+    response = make_response(xml_str, code)
+    response.headers.extend(headers or {})
+    return response
