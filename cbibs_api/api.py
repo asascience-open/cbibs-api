@@ -364,7 +364,7 @@ class BaseApi(Resource):
         # TODO: handle bad endpoint request
         # return a JSONRPC formed response if coming from POST
 
-        if request_wants_xml():
+        if request_wants_xml() or request.content_type == 'text/xml':
             if hasattr(res, '__dict__'):
                 xml_str = xmlrpc_client.dumps((dict(res),), methodresponse=True)
             else:
