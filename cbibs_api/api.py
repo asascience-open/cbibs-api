@@ -21,6 +21,7 @@ from collections import OrderedDict
 from werkzeug.wrappers import Response as ResponseBase
 from flask_restful.utils import error_data, unpack
 from jinja2 import Environment, PackageLoader
+from copy import copy
 
 # Is this superfluous because of flask?
 j2 = Environment(loader=PackageLoader('cbibs_api', 'templates'))
@@ -95,7 +96,10 @@ class BaseResource(Resource):
         else:
             protocol = 'JSON-RPC'
         resource = getattr(cls, 'resource_name', None) or cls.__name__
-        arguments = ', '.join(['string %s[req]' % keyname for keyname in cls.keys or []])
+        args = copy(cls.keys)
+        if check_api_key_and_req_type in cls.method_decorators:
+            args += ['api_key']
+        arguments = ', '.join(['string %s[req]' % keyname for keyname in args or []])
         description = 'CDRH %(protocol)s %(resource)s Function (%(arguments)s)' % locals()
         return getattr(cls, 'helpstring', None) or description
 

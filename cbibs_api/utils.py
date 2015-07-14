@@ -78,3 +78,4 @@ def output_xml(data, code, headers=None):
     response = make_response(xml_str, code)
     response.headers.extend(headers or {})
     return response
+
