@@ -11,7 +11,7 @@ WITH pivot AS (
         o.measure_ts at time zone 'UTC' > (current_timestamp - '1 month'::interval)
         AND o.measure_ts at time zone 'UTC' < current_timestamp
         AND st.description = %(station)s
-        AND pr.organization = %(constellation)s
+        AND UPPER(pr.organization) = UPPER(%(constellation)s)
         AND v.actual_name not in ('grid_latitude', 'grid_longitude', 'error_count', 'current_velocity', 'current_direction')
     GROUP BY o.d_variable_id
 )
@@ -34,6 +34,6 @@ JOIN cbibs.d_units u ON u.id = v.d_units_id
 JOIN cbibs.d_qa_code_primary qc ON qc.id = o.d_qa_code_primary_id
 WHERE
     s.description = %(station)s
-    AND pr.organization = %(constellation)s
+    AND UPPER(pr.organization) = UPPER(%(constellation)s)
     AND qc.qa_code = 1
 ORDER BY measurement;

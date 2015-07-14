@@ -9,7 +9,7 @@ JOIN cbibs.d_station s ON s.id = o.d_station_id
 JOIN cbibs.d_provider pr ON pr.id = s.d_provider_id
 JOIN cbibs.d_qa_code_primary qc ON qc.id = o.d_qa_code_primary_id
 WHERE
-    pr.organization = %(constellation)s
+    UPPER(pr.organization) = UPPER(%(constellation)s)
     AND s.description = %(station)s
     AND lt.location_type = 'Observed Latitude, Longitude, Station Elevation'
     AND qc.qa_code = 1
