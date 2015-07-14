@@ -23,8 +23,7 @@ JSON_HEADERS = {
     "Accept": "application/json"
 }
 XML_HEADERS = {
-    "Content-Type": "application/xml",
-    "Accept": "application/xml"
+    "Content-type": "text/xml"
 }
 
 class TestJsonApi(TestCase):

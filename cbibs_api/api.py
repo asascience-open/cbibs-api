@@ -14,9 +14,12 @@ from flask import request, Response, jsonify
 from flask_restful import Resource
 from cbibs_api import app, api, db
 from cbibs_api.utils import check_api_key_and_req_type, UnauthorizedError, request_wants_xml, request_wants_json
+from cbibs_api.utils import output_json, output_xml
 from cbibs_api.queries import SQL
 from defusedxml.xmlrpc import xmlrpc_client
 from collections import OrderedDict
+from werkzeug.wrappers import Response as ResponseBase
+from flask_restful.utils import error_data, unpack
 from jinja2 import Environment, PackageLoader
 
 # Is this superfluous because of flask?
@@ -313,7 +316,13 @@ class BaseApi(Resource):
     """Base API which responds to XMLRPC and JSONRPC methods.  This delegates
        to the REST API methods, but adds fields/functionality as needed to
        emulate RPC."""
-    # TODO: Add more canonical RPC error returns depending on spec requested
+    def __init__(self):
+        Resource.__init__(self)
+        self.representations = {
+            'text/xml' : output_xml,
+            'application/json' : output_json
+        }
+
     def get(self):
 
         return OrderedDict([('id', 1),
@@ -344,6 +353,41 @@ class BaseApi(Resource):
         # load xmlrpc method
         self.api_endpoint = routing_dict[payload[1]]
         return dict(zip(self.api_endpoint.keys, payload[0]))
+    
+    def dispatch_request(self, *args, **kwargs):
+
+        # Taken from flask
+        #noinspection PyUnresolvedReferences
+        meth = getattr(self, request.method.lower(), None)
+        if meth is None and request.method == 'HEAD':
+            meth = getattr(self, 'get', None)
+        assert meth is not None, 'Unimplemented method %r' % request.method
+
+        for decorator in self.method_decorators:
+            meth = decorator(meth)
+
+        resp = meth(*args, **kwargs)
+
+        if isinstance(resp, ResponseBase):  # There may be a better way to test
+            return resp
+
+        representations = self.representations or {}
+
+        #noinspection PyUnresolvedReferences
+        mediatype = request.accept_mimetypes.best_match(representations, default=None)
+        if mediatype in representations:
+            data, code, headers = unpack(resp)
+            resp = representations[mediatype](data, code, headers)
+            resp.headers['Content-Type'] = mediatype
+            return resp
+        elif request.content_type in representations:
+            mediatype = request.content_type
+            data, code, headers = unpack(resp)
+            resp = representations[mediatype](data, code, headers)
+            resp.headers['Content-Type'] = mediatype
+            return resp
+
+        return resp
 
     def post(self):
         request.args = self.parse_args()
@@ -357,28 +401,15 @@ class BaseApi(Resource):
                 get_method = wrapper(get_method)
             res = get_method()
         except UnauthorizedError as e:
-            return self.return_error(e.message, 401)
+            return {'error':e.message}, 401
         except Exception as e:
-            raise
-            return self.return_error(e.message, 400)
-        # TODO: handle bad endpoint request
-        # return a JSONRPC formed response if coming from POST
+            if app.config['DEBUG'] or app.config['TESTING']:
+                raise
+            return {'error':e.message}, 400
 
         if request_wants_xml() or request.content_type == 'text/xml':
-            if hasattr(res, '__dict__'):
-                xml_str = xmlrpc_client.dumps((dict(res),), methodresponse=True)
-            else:
-                xml_str = xmlrpc_client.dumps((res,), methodresponse=True)
-            return Response(xml_str, mimetype='text/xml')
-        return OrderedDict([('id', 1), ('error', None), ('result', res)])
-
-
-    def return_error(self, message, code):
-        if request_wants_xml():
-            payload = xmlrpc_client.dumps({'error':message}, methodresponse=True)
-            return Response(payload, mimetype='text/xml'), code
-        return {'id':1, 'error':message, 'result':None}, code
-
+            return res
+        return res
 
 
 api.add_resource(BaseApi, '/')
