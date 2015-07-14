@@ -14,7 +14,7 @@ WHERE
     measure_ts AT TIME ZONE 'UTC' > %(beg_date)s
     AND measure_ts AT TIME ZONE 'UTC' < %(end_date)s
     AND s.description = %(station)s
-    AND pr.organization = %(constellation)s
+    AND UPPER(pr.organization) = UPPER(%(constellation)s)
     AND v.actual_name = %(measurement)s
     AND qc.qa_code = 1
 ORDER BY measure_ts;

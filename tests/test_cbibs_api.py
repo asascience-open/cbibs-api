@@ -194,7 +194,7 @@ class TestJsonApi(TestCase):
         assert obs_date > datetime(2014,8,1)
 
     def test_retrieve_current_readings(self):
-        arg_arr = ['CBIBS', 'J']
+        arg_arr = ['cbibs', 'J']
         post_response = self.make_json_payload('RetrieveCurrentReadings', arg_arr)
         json_response = json.loads(post_response.data)
         # Assert no duplicates
