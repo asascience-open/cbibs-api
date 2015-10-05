@@ -13,9 +13,11 @@ WITH pivot AS (
         AND st.description = %(station)s
         AND UPPER(pr.organization) = UPPER(%(constellation)s)
         AND v.actual_name not in ('grid_latitude', 'grid_longitude', 'error_count', 'current_velocity', 'current_direction')
+        AND o.obs_value is not null
     GROUP BY o.d_variable_id
 )
 SELECT
+    DISTINCT ON (measurement, o.measure_ts)
     cbibs.depth_naming(v.actual_name, l.elevation) AS measurement,
     to_char(
         o.measure_ts AT TIME ZONE 'UTC',
@@ -35,5 +37,5 @@ JOIN cbibs.d_qa_code_primary qc ON qc.id = o.d_qa_code_primary_id
 WHERE
     s.description = %(station)s
     AND UPPER(pr.organization) = UPPER(%(constellation)s)
-    AND qc.qa_code = 1
+    AND NOT (qc.qa_code = ANY ('{3,4}'))
 ORDER BY measurement;
