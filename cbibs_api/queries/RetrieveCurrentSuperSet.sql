@@ -19,7 +19,8 @@ max_ident AS (
         AND sup.d_station_id = o.d_station_id
     GROUP BY o.d_variable_id
 )
-SELECT
+SELECT 
+    DISTINCT ON (v.actual_name, o.measure_ts, o.obs_value)
     v.actual_name AS measurement,
     to_char(
         o.measure_ts AT TIME ZONE 'UTC',

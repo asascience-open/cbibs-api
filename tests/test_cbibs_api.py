@@ -416,7 +416,7 @@ class TestJsonApi(TestCase):
         assert not isinstance(json_response['result']['latitude'], list)
         lat = json_response['result']['latitude']
         lon = json_response['result']['longitude']
-        np.testing.assert_allclose([lat, lon], np.array([37.204168, -76.777355]))
+        np.testing.assert_allclose([lat, lon], np.array([37.204168, -76.777355]), atol=0.001)
         
         post_response = self.make_xml_payload('GetMetaDataLocation', arg_arr)
         assert post_response.status_code == 200
@@ -425,7 +425,7 @@ class TestJsonApi(TestCase):
         lat = float(lat[0].text)
         lon = root.xpath(".//member[name/text()='longitude']/value/double")
         lon = float(lon[0].text)
-        np.testing.assert_allclose([lat, lon], np.array([37.204168, -76.777355]))
+        np.testing.assert_allclose([lat, lon], np.array([37.204168, -76.777355]), atol=0.001)
 
     def test_query_data_simple(self):
         arg_arr = ['CBIBS', 'J', 'sea_water_temperature', '2015-05-01', '2015-05-01T06:00']
