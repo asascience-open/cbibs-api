@@ -264,8 +264,9 @@ class QueryDataByTime(BaseResource):
     def get(self):
         template = j2.get_template('query_data_by_time.xml.j2')
         rows = []
-        for i,t in enumerate(self.res['time']):
-            rows.append([t, self.res['measurement'][i], self.res['value'][i], self.res['units'][i]])
+        if 'time' in self.res:
+            for i,t in enumerate(self.res['time']):
+                rows.append([t, self.res['measurement'][i], self.res['value'][i], self.res['units'][i]])
         payload = template.render(rows=rows)
         return payload
 

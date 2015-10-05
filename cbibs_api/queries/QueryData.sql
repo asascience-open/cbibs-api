@@ -16,5 +16,5 @@ WHERE
     AND s.description = %(station)s
     AND UPPER(pr.organization) = UPPER(%(constellation)s)
     AND v.actual_name = %(measurement)s
-    AND qc.qa_code = 1
+    AND NOT (qc.qa_code = ANY ('{3,4}'))
 ORDER BY measure_ts;

@@ -218,7 +218,8 @@ class TestJsonApi(TestCase):
         post_response = self.make_json_payload('ListStationsWithParam',
                                                arg_arr)
         expected = {
-            "id": 1, "error": None, "result": ["SN","PL","J","SR","S","N","AN","UP","GR","FL","RC"]
+            #"id": 1, "error": None, "result": ["SN","PL","J","SR","S","N","AN","UP","GR","FL","RC"]
+            "id": 1, "error": None, "result": ["SN","PL","J","SR","S","N","AN","UP","GR","FL"]
         }
         json_response = json.loads(post_response.data)
         assert set(expected['result']) == set(json_response['result'])
@@ -428,7 +429,7 @@ class TestJsonApi(TestCase):
         np.testing.assert_allclose([lat, lon], np.array([37.204168, -76.777355]), atol=0.001)
 
     def test_query_data_simple(self):
-        arg_arr = ['CBIBS', 'J', 'sea_water_temperature', '2015-05-01', '2015-05-01T06:00']
+        arg_arr = ['CBIBS', 'J', 'sea_water_temperature', '2015-09-08', '2015-09-08T06:00']
         post_response = self.make_json_payload('QueryDataSimple', arg_arr)
         json_response = json.loads(post_response.data)
         expected = {
@@ -436,18 +437,18 @@ class TestJsonApi(TestCase):
             "id": 1,
             "result": {
                 "time": [
-                    "2015-05-01 01:00:00",
-                    "2015-05-01 02:00:00",
-                    "2015-05-01 03:00:00",
-                    "2015-05-01 04:00:00",
-                    "2015-05-01 05:00:00"
+                    "2015-09-08 01:00:00",
+                    "2015-09-08 02:00:00",
+                    "2015-09-08 03:00:00",
+                    "2015-09-08 04:00:00",
+                    "2015-09-08 05:00:00"
                 ],
                 "value": [
-                    17.0,
-                    17.12,
-                    17.16,
-                    17.11,
-                    17.15
+                    27.51,
+                    27.55,
+                    27.37,
+                    27.5,
+                    27.3
                 ]
             }
         }
@@ -460,7 +461,7 @@ class TestJsonApi(TestCase):
         assert len(times) == len(values) and len(times) > 3
 
     def test_query_data_by_time(self):
-        arg_arr = ['CBIBS', 'J', 'sea_water_temperature', '2015-05-01', '2015-05-01T06:00']
+        arg_arr = ['CBIBS', 'J', 'sea_water_temperature', '2015-09-08', '2015-09-08T06:00']
         post_response = self.make_json_payload('QueryDataByTime', arg_arr)
         json_response = json.loads(post_response.data)
         root = etree.fromstring(json_response['result'])
