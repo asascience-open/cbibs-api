@@ -17,7 +17,7 @@ WITH pivot AS (
     GROUP BY o.d_variable_id
 )
 SELECT
-    DISTINCT ON (measurement, o.measure_ts)
+    DISTINCT ON (measurement, o.measure_ts, l.elevation)
     cbibs.depth_naming(v.actual_name, l.elevation) AS measurement,
     to_char(
         o.measure_ts AT TIME ZONE 'UTC',
