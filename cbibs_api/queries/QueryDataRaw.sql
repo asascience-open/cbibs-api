@@ -1,4 +1,5 @@
 SELECT
+    DISTINCT ON (o.measure_ts, v.actual_name, l.elevation)
     to_char(measure_ts AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS') as time,
     obs_value as value,
     cbibs.depth_naming(v.actual_name, l.elevation) as measurement,
