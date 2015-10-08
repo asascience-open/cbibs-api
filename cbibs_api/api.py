@@ -22,6 +22,9 @@ from werkzeug.wrappers import Response as ResponseBase
 from flask_restful.utils import error_data, unpack
 from jinja2 import Environment, PackageLoader
 from copy import copy
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
+import pandas as pd
 
 # Is this superfluous because of flask?
 j2 = Environment(loader=PackageLoader('cbibs_api', 'templates'))
@@ -33,6 +36,7 @@ class BaseResource(Resource):
     keys = None
     return_type = "string"
     def __init__(self):
+        print "init"
         self.res = self.result_simple()
 
     def get(self):
@@ -62,6 +66,7 @@ class BaseResource(Resource):
                                   sql file with the same name as the string,
                                   minus the extension
         """
+        print "I have executed the SQL Query"
         sql_name = (self.__class__.__name__ if not sql_name_override else
                     sql_name_override)
         res = db.engine.execute(SQL[sql_name], request.args)
@@ -131,8 +136,48 @@ class LastMeasurementTime(BaseResource):
 class RetrieveCurrentReadings(BaseResource):
     keys = ['constellation', 'station']
     method_decorators = [check_api_key_and_req_type]
+    def __init__(self):
+        sql_name = self.__class__.__name__
+        self.constellation = request.args.get('constellation', 'cbibs')
+        self.station = request.args.get('station')
+        now = datetime.utcnow()
+        start_date = now - relativedelta(weeks=2)
+        params = {'constellation':self.constellation, 'station':self.station, 'start_date':start_date}
+        self.table = pd.read_sql(SQL[sql_name], db.engine, params=params)
+        self.table = self.table[~self.table['obs_value'].isnull()]
+        self.table = self.table.sort(['measure_ts', 'measurement'])
     def get(self):
-        return self.result_simple(reflect_params=True)
+        '''
+        '''
+
+        '''
+        Table has
+        - measure_ts
+        - measurement (name+depth)
+        - obs_value
+        - canonical_units
+        '''
+        
+
+        variables = self.table['measurement'].unique()
+        values = []
+        times = []
+        units = []
+        for variable in variables:
+            row = self.table[(self.table['measurement'] == variable)].iloc[-1]
+            times.append(row['measure_ts'].strftime('%Y-%m-%d %H:%M:%S'))
+            values.append(row['obs_value'].item())
+            units.append(row['canonical_units'])
+        self.res = OrderedDict([
+            (u'constellation', self.constellation), 
+            (u'station', self.station), 
+            (u'measurement',tuple(variables)), 
+            (u'time', times), 
+            (u'value', values), 
+            ('units', units)
+        ])
+            
+        return self.res
 
 class ListStationsWithParam(BaseResource):
     keys = ['constellation', 'parameter']
