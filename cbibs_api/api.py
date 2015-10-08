@@ -145,6 +145,7 @@ class RetrieveCurrentReadings(BaseResource):
         params = {'constellation':self.constellation, 'station':self.station, 'start_date':start_date}
         self.table = pd.read_sql(SQL[sql_name], db.engine, params=params)
         self.table = self.table[~self.table['obs_value'].isnull()]
+        self.table = self.table[~self.table['primary_qc'].isin([3,4])]
         self.table = self.table.sort(['measure_ts', 'measurement'])
     def get(self):
         '''
@@ -156,6 +157,7 @@ class RetrieveCurrentReadings(BaseResource):
         - measurement (name+depth)
         - obs_value
         - canonical_units
+        - primary_qc
         '''
         
 
