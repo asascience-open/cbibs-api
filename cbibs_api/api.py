@@ -201,8 +201,8 @@ class QueryData(BaseResource):
         sql_name = sql_name or self.__class__.__name__
         self.constellation = request.args.get('constellation', 'CBIBS')
         self.station = request.args.get('station')
-        beg_date = dateparse(request.args.get('beg_date'))
-        end_date = dateparse(request.args.get('end_date'))
+        beg_date = dateparse(request.args.get('beg_date'), ignoretz=True)
+        end_date = dateparse(request.args.get('end_date'), ignoretz=True)
         params = {
             'constellation': self.constellation,
             'station': self.station,
