@@ -37,7 +37,6 @@ class BaseResource(Resource):
     keys = None
     return_type = "string"
     def __init__(self):
-        print "init"
         self.res = self.result_simple()
 
     def get(self):
