@@ -23,6 +23,7 @@ from flask_restful.utils import error_data, unpack
 from jinja2 import Environment, PackageLoader
 from copy import copy
 from dateutil.relativedelta import relativedelta
+from dateutil.parser import parse as dateparse
 from datetime import datetime
 import pandas as pd
 
@@ -66,7 +67,6 @@ class BaseResource(Resource):
                                   sql file with the same name as the string,
                                   minus the extension
         """
-        print "I have executed the SQL Query"
         sql_name = (self.__class__.__name__ if not sql_name_override else
                     sql_name_override)
         res = db.engine.execute(SQL[sql_name], request.args)
@@ -198,16 +198,38 @@ class QueryData(BaseResource):
     keys = ['constellation', 'station', 'measurement',
             'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
+    def __init__(self, sql_name=None):
+        sql_name = sql_name or self.__class__.__name__
+        self.constellation = request.args.get('constellation', 'CBIBS')
+        self.station = request.args.get('station')
+        beg_date = dateparse(request.args.get('beg_date'))
+        end_date = dateparse(request.args.get('end_date'))
+        params = {
+            'constellation': self.constellation,
+            'station': self.station,
+            'beg_date': beg_date.isoformat() + 'Z',
+            'end_date': end_date.isoformat() + 'Z'
+        }
+        self.table = pd.read_sql(SQL[sql_name], db.engine, params=params)
+        self.table = self.table[self.table['obs_value'].notnull()]
+        self.table = self.table[self.table['measurement'] == request.args.get('measurement')]
+        self.table = self.table[~self.table['primary_qc'].isin([3,4])]
+        self.table = self.table.sort(['measure_ts'])
+
 
     def get(self):
-        return {
-            'measurement' : self.res['measurement'][0],
-            'units' : self.res['units'][0],
+
+        if len(self.table) < 1:
+            return {}
+        retval = {
+            'measurement' : request.args.get('measurement'),
+            'units' : self.table.iloc[-1]['units'],
             'values' : {
-                'time' : self.res['time'],
-                'value' : [float(v) for v in self.res['value']]
+                'time' : [t.strftime('%Y-%m-%d %H:%M:%S') for t in self.table['measure_ts']],
+                'value' : self.table['obs_value'].values.tolist()
             }
         }
+        return retval
 
 class RetrieveCurrentSuperSet(BaseResource):
     keys = ['superset']
@@ -287,33 +309,36 @@ class GetMetaDataLocation(BaseResource):
             'longitude':self.res['longitude'][0]
         }
 
-class QueryDataSimple(BaseResource):
+class QueryDataSimple(QueryData):
     keys = ['constellation', 'station', 'measurement', 'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
-    
-    def __init__(self):
-        self.res = self.result_simple(sql_name_override='QueryData')
 
+    def __init__(self):
+        QueryData.__init__(self, 'QueryData')
+    
     def get(self):
-        if not self.res:
+        if len(self.table) < 1:
             return {'time':[], 'value':[]}
         return {
-            'time' : self.res['time'],
-            'value' : [float(v) for v in self.res['value']]
+            'time' : [t.strftime('%Y-%m-%d %H:%M:%S') for t in self.table['measure_ts']],
+            'value' : self.table['obs_value'].values.tolist()
         }
 
-class QueryDataByTime(BaseResource):
+class QueryDataByTime(QueryData):
     keys = ['constellation', 'station', 'measurement', 'beg_date', 'end_date']
     method_decorators = [check_api_key_and_req_type]
     def __init__(self):
-        self.res = self.result_simple(sql_name_override='QueryData')
+        QueryData.__init__(self, 'QueryData')
 
     def get(self):
         template = j2.get_template('query_data_by_time.xml.j2')
         rows = []
-        if 'time' in self.res:
-            for i,t in enumerate(self.res['time']):
-                rows.append([t, self.res['measurement'][i], self.res['value'][i], self.res['units'][i]])
+        for index, row in self.table.iterrows():
+            rows.append([
+                row['measure_ts'].strftime('%Y-%m-%d %H:%M:%s'),
+                row['obs_value'],
+                row['units']
+            ])
         payload = template.render(rows=rows)
         return payload
 

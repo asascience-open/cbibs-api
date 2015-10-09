@@ -79,65 +79,65 @@ class TestJsonApi(TestCase):
         assert len(xpath_res) == 1
 
     def test_query_data(self):
-        arg_arr = ['CBIBS', 'J', 'sea_water_salinity', '2014-08-01',
-                    '2014-08-02']
+        arg_arr = ['CBIBS', 'J', 'sea_water_temperature', '2015-10-01',
+                    '2015-10-02']
         post_response = self.make_json_payload('QueryData', arg_arr)
         expected = {
             "error": None,
             "id": 1,
             "result": {
-                "measurement": "sea_water_salinity",
-                "units": "PSU",
+                "measurement": "sea_water_temperature",
+                "units": "C",
                 "values": {
                     "time": [
-                        "2014-08-01 01:00:00",
-                        "2014-08-01 02:00:00",
-                        "2014-08-01 03:00:00",
-                        "2014-08-01 04:00:00",
-                        "2014-08-01 05:00:00",
-                        "2014-08-01 06:00:00",
-                        "2014-08-01 07:00:00",
-                        "2014-08-01 08:00:00",
-                        "2014-08-01 09:00:00",
-                        "2014-08-01 10:00:00",
-                        "2014-08-01 11:00:00",
-                        "2014-08-01 12:00:00",
-                        "2014-08-01 13:00:00",
-                        "2014-08-01 14:00:00",
-                        "2014-08-01 15:00:00",
-                        "2014-08-01 16:00:00",
-                        "2014-08-01 17:00:00",
-                        "2014-08-01 18:00:00",
-                        "2014-08-01 19:00:00",
-                        "2014-08-01 20:00:00",
-                        "2014-08-01 21:00:00",
-                        "2014-08-01 22:00:00",
-                        "2014-08-01 23:00:00"
+                        u'2015-10-01 01:00:00',
+                        u'2015-10-01 02:00:00',
+                        u'2015-10-01 03:00:00',
+                        u'2015-10-01 04:00:00',
+                        u'2015-10-01 05:00:00',
+                        u'2015-10-01 06:00:00',
+                        u'2015-10-01 07:00:00',
+                        u'2015-10-01 08:00:00',
+                        u'2015-10-01 09:00:00',
+                        u'2015-10-01 10:00:00',
+                        u'2015-10-01 11:00:00',
+                        u'2015-10-01 12:00:00',
+                        u'2015-10-01 13:00:00',
+                        u'2015-10-01 14:00:00',
+                        u'2015-10-01 15:00:00',
+                        u'2015-10-01 16:00:00',
+                        u'2015-10-01 17:00:00',
+                        u'2015-10-01 18:00:00',
+                        u'2015-10-01 19:00:00',
+                        u'2015-10-01 20:00:00',
+                        u'2015-10-01 21:00:00',
+                        u'2015-10-01 22:00:00',
+                        u'2015-10-01 23:00:00'
                     ],
                     "value": [
-                        2.91,
-                        2.55,
-                        2.35,
-                        2.25,
-                        2.39,
-                        2.64,
-                        3.15,
-                        3.34,
-                        3.38,
-                        3.39,
-                        2.69,
-                        2.78,
-                        3.07,
-                        2.67,
-                        2.26,
-                        1.72,
-                        1.92,
-                        2.59,
-                        3.3,
-                        4.0,
-                        4.13,
-                        4.39,
-                        3.4
+                        23.99,
+                        23.9,
+                        23.89,
+                        23.87,
+                        23.78,
+                        23.88,
+                        24.17,
+                        23.95,
+                        23.84,
+                        23.68,
+                        23.57,
+                        23.69,
+                        23.58,
+                        23.5,
+                        23.4,
+                        23.38,
+                        23.53,
+                        23.64,
+                        23.99,
+                        23.57,
+                        24.07,
+                        23.91,
+                        23.2
                     ]
                 }
             }
@@ -149,10 +149,10 @@ class TestJsonApi(TestCase):
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)
         xpath_res = root.xpath(".//member[name/text()='measurement']/value/string")
-        assert xpath_res[0].text == 'sea_water_salinity'
+        assert xpath_res[0].text == 'sea_water_temperature'
 
         xpath_res = root.xpath(".//member[name/text()='units']/value/string")
-        assert xpath_res[0].text == 'PSU'
+        assert xpath_res[0].text == 'C'
         
         times = root.xpath(".//member[name/text()='values']/value/struct/member[name/text()='time']/value/array/data/value")
         values = root.xpath(".//member[name/text()='values']/value/struct/member[name/text()='value']/value/array/data/value")
