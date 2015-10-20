@@ -339,6 +339,7 @@ class TestJsonApi(TestCase):
             "id": 1,
             "result": {
                 "measurement": "sea_water_salinity",
+                "report_name": "Sea Water Salinity",
                 "units": "PSU",
                 "values": {
                     "time": [

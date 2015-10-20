@@ -145,6 +145,19 @@ class RetrieveCurrentReadings(BaseResource):
         self.table = pd.read_sql(SQL[sql_name], db.engine, params=params)
         self.table = self.table[~self.table['obs_value'].isnull()]
         self.table = self.table[~self.table['primary_qc'].isin([3,4])]
+        blacklist = [
+            'current_average_direction',
+            'current_average_direction_bottom',
+            'current_average_velocity',
+            'current_average_velocity_bottom',
+            'current_direction',
+            'current_direction_bottom',
+            'current_velocity',
+            'current_velocity_bottom',
+            'sea_water_freezing_point',
+            'error_count'
+        ]
+        self.table = self.table[~self.table['measurement'].isin(blacklist)]
         self.table = self.table.sort(['measure_ts', 'measurement'])
     def get(self):
         '''
@@ -295,7 +308,7 @@ class QueryDataRaw(BaseResource):
     def get(self):
         return {
             'measurement' : self.res['measurement'][0],
-            'report_name' : self.table.iloc[-1]['report_name'],
+            'report_name' : self.res['report_name'][0],
             'units' : self.res['units'][0],
             'values' : {
                 'time' : self.res['time'],
