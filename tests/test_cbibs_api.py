@@ -87,6 +87,7 @@ class TestJsonApi(TestCase):
             "id": 1,
             "result": {
                 "measurement": "sea_water_temperature",
+                "report_name":"Water Temperature",
                 "units": "C",
                 "values": {
                     "time": [

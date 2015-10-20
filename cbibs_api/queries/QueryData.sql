@@ -2,6 +2,7 @@ SELECT
     DISTINCT ON (o.measure_ts, measurement, l.elevation)
     o.measure_ts AT TIME ZONE 'UTC' as measure_ts,
     cbibs.depth_naming(v.actual_name, l.elevation) as measurement,
+    v.report_name,
     o.obs_value,
     u.canonical_units as units,
     qc.qa_code as primary_qc

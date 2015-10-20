@@ -164,18 +164,21 @@ class RetrieveCurrentReadings(BaseResource):
         values = []
         times = []
         units = []
+        report_names = []
         for variable in variables:
             row = self.table[(self.table['measurement'] == variable)].iloc[-1]
             times.append(row['measure_ts'].strftime('%Y-%m-%d %H:%M:%S'))
             values.append(row['obs_value'].item())
             units.append(row['canonical_units'])
+            report_names.append(row['report_name'])
         self.res = OrderedDict([
             (u'constellation', self.constellation), 
             (u'station', self.station), 
             (u'measurement',tuple(variables)), 
             (u'time', times), 
             (u'value', values), 
-            ('units', units)
+            (u'units', units),
+            (u'report_name', report_names)
         ])
             
         return self.res
@@ -222,6 +225,7 @@ class QueryData(BaseResource):
             return {}
         retval = {
             'measurement' : request.args.get('measurement'),
+            'report_name' : self.table.iloc[-1]['report_name'],
             'units' : self.table.iloc[-1]['units'],
             'values' : {
                 'time' : [t.strftime('%Y-%m-%d %H:%M:%S') for t in self.table['measure_ts']],
@@ -291,6 +295,7 @@ class QueryDataRaw(BaseResource):
     def get(self):
         return {
             'measurement' : self.res['measurement'][0],
+            'report_name' : self.table.iloc[-1]['report_name'],
             'units' : self.res['units'][0],
             'values' : {
                 'time' : self.res['time'],
