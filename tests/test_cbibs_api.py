@@ -87,6 +87,7 @@ class TestJsonApi(TestCase):
             "id": 1,
             "result": {
                 "measurement": "sea_water_temperature",
+                "report_name":"Water Temperature",
                 "units": "C",
                 "values": {
                     "time": [
@@ -144,7 +145,7 @@ class TestJsonApi(TestCase):
         }
         json_response = json.loads(post_response.data)
         assert json_response == expected
-        
+
         post_response = self.make_xml_payload('QueryData', arg_arr)
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)
@@ -153,7 +154,7 @@ class TestJsonApi(TestCase):
 
         xpath_res = root.xpath(".//member[name/text()='units']/value/string")
         assert xpath_res[0].text == 'C'
-        
+
         times = root.xpath(".//member[name/text()='values']/value/struct/member[name/text()='time']/value/array/data/value")
         values = root.xpath(".//member[name/text()='values']/value/struct/member[name/text()='value']/value/array/data/value")
 
@@ -219,11 +220,11 @@ class TestJsonApi(TestCase):
                                                arg_arr)
         expected = {
             #"id": 1, "error": None, "result": ["SN","PL","J","SR","S","N","AN","UP","GR","FL","RC"]
-            "id": 1, "error": None, "result": ["SN","PL","J","SR","S","N","AN","UP","GR","FL"]
+            "id": 1, "error": None, "result": ["SN","PL","J","SR","S","N","AN"]
         }
         json_response = json.loads(post_response.data)
         assert set(expected['result']) == set(json_response['result'])
-        
+
         post_response = self.make_xml_payload('ListStationsWithParam', arg_arr)
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)
@@ -239,7 +240,7 @@ class TestJsonApi(TestCase):
         assert 'sea_water_salinity' in json_response['result']
         assert len(json_response['result']) > 0
         assert json_response['error'] is None
-        
+
         post_response = self.make_xml_payload('ListParameters', arg_arr)
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)
@@ -256,7 +257,7 @@ class TestJsonApi(TestCase):
         assert len(json_response['result']['measurement']) > 0
         assert len(json_response['result']['value']) > 0
         assert 'sea_water_temperature' in json_response['result']['measurement']
-        
+
         post_response = self.make_xml_payload('RetrieveCurrentSuperSet', arg_arr)
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)
@@ -284,7 +285,7 @@ class TestJsonApi(TestCase):
             post_response = self.make_json_payload('system.methodHelp', arg_arr)
             json_response = json.loads(post_response.data)
             assert json_response['result']
-            
+
             arg_arr = [method]
             post_response = self.make_xml_payload('system.methodHelp', arg_arr)
             assert post_response.status_code == 200
@@ -297,7 +298,7 @@ class TestJsonApi(TestCase):
             post_response = self.make_json_payload('system.methodSignature', arg_arr)
             json_response = json.loads(post_response.data)
             assert json_response['result']
-            
+
             arg_arr = [method]
             post_response = self.make_xml_payload('system.methodSignature', arg_arr)
             assert post_response.status_code == 200
@@ -322,7 +323,7 @@ class TestJsonApi(TestCase):
         post_response = self.make_json_payload('GetStationStatus', arg_arr)
         json_response = json.loads(post_response.data)
         assert json_response['result'] == 0
-        
+
         post_response = self.make_xml_payload('GetStationStatus', arg_arr)
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)
@@ -338,6 +339,7 @@ class TestJsonApi(TestCase):
             "id": 1,
             "result": {
                 "measurement": "sea_water_salinity",
+                "report_name": "Sea Water Salinity",
                 "units": "PSU",
                 "values": {
                     "time": [
@@ -395,7 +397,7 @@ class TestJsonApi(TestCase):
         }
         json_response = json.loads(post_response.data)
         assert json_response == expected
-        
+
         post_response = self.make_xml_payload('QueryDataRaw', arg_arr)
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)
@@ -404,7 +406,7 @@ class TestJsonApi(TestCase):
 
         xpath_res = root.xpath(".//member[name/text()='units']/value/string")
         assert xpath_res[0].text == 'PSU'
-        
+
         times = root.xpath(".//member[name/text()='values']/value/struct/member[name/text()='time']/value/array/data/value")
         values = root.xpath(".//member[name/text()='values']/value/struct/member[name/text()='value']/value/array/data/value")
 
@@ -418,7 +420,7 @@ class TestJsonApi(TestCase):
         lat = json_response['result']['latitude']
         lon = json_response['result']['longitude']
         np.testing.assert_allclose([lat, lon], np.array([37.204168, -76.777355]), atol=0.001)
-        
+
         post_response = self.make_xml_payload('GetMetaDataLocation', arg_arr)
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)
@@ -465,7 +467,7 @@ class TestJsonApi(TestCase):
         post_response = self.make_json_payload('QueryDataByTime', arg_arr)
         json_response = json.loads(post_response.data)
         root = etree.fromstring(json_response['result'])
-        
+
         post_response = self.make_xml_payload('QueryDataByTime', arg_arr)
         assert post_response.status_code == 200
         root = etree.fromstring(post_response.data)

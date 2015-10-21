@@ -145,6 +145,19 @@ class RetrieveCurrentReadings(BaseResource):
         self.table = pd.read_sql(SQL[sql_name], db.engine, params=params)
         self.table = self.table[~self.table['obs_value'].isnull()]
         self.table = self.table[~self.table['primary_qc'].isin([3,4])]
+        blacklist = [
+            'current_average_direction',
+            'current_average_direction_bottom',
+            'current_average_velocity',
+            'current_average_velocity_bottom',
+            'current_direction',
+            'current_direction_bottom',
+            'current_velocity',
+            'current_velocity_bottom',
+            'sea_water_freezing_point',
+            'error_count'
+        ]
+        self.table = self.table[~self.table['measurement'].isin(blacklist)]
         self.table = self.table.sort(['measure_ts', 'measurement'])
     def get(self):
         '''
@@ -164,18 +177,21 @@ class RetrieveCurrentReadings(BaseResource):
         values = []
         times = []
         units = []
+        report_names = []
         for variable in variables:
             row = self.table[(self.table['measurement'] == variable)].iloc[-1]
             times.append(row['measure_ts'].strftime('%Y-%m-%d %H:%M:%S'))
             values.append(row['obs_value'].item())
             units.append(row['canonical_units'])
+            report_names.append(row['report_name'])
         self.res = OrderedDict([
             (u'constellation', self.constellation), 
             (u'station', self.station), 
             (u'measurement',tuple(variables)), 
             (u'time', times), 
             (u'value', values), 
-            ('units', units)
+            (u'units', units),
+            (u'report_name', report_names)
         ])
             
         return self.res
@@ -222,6 +238,7 @@ class QueryData(BaseResource):
             return {}
         retval = {
             'measurement' : request.args.get('measurement'),
+            'report_name' : self.table.iloc[-1]['report_name'],
             'units' : self.table.iloc[-1]['units'],
             'values' : {
                 'time' : [t.strftime('%Y-%m-%d %H:%M:%S') for t in self.table['measure_ts']],
@@ -291,6 +308,7 @@ class QueryDataRaw(BaseResource):
     def get(self):
         return {
             'measurement' : self.res['measurement'][0],
+            'report_name' : self.res['report_name'][0],
             'units' : self.res['units'][0],
             'values' : {
                 'time' : self.res['time'],
