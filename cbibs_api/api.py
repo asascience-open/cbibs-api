@@ -146,14 +146,6 @@ class RetrieveCurrentReadings(BaseResource):
         self.table = self.table[~self.table['obs_value'].isnull()]
         self.table = self.table[~self.table['primary_qc'].isin([3,4])]
         blacklist = [
-            'current_average_direction',
-            'current_average_direction_bottom',
-            'current_average_velocity',
-            'current_average_velocity_bottom',
-            'current_direction',
-            'current_direction_bottom',
-            'current_velocity',
-            'current_velocity_bottom',
             'sea_water_freezing_point',
             'error_count'
         ]
@@ -171,7 +163,7 @@ class RetrieveCurrentReadings(BaseResource):
         - canonical_units
         - primary_qc
         '''
-        
+
 
         variables = self.table['measurement'].unique()
         values = []
@@ -185,15 +177,15 @@ class RetrieveCurrentReadings(BaseResource):
             units.append(row['canonical_units'])
             report_names.append(row['report_name'])
         self.res = OrderedDict([
-            (u'constellation', self.constellation), 
-            (u'station', self.station), 
-            (u'measurement',tuple(variables)), 
-            (u'time', times), 
-            (u'value', values), 
+            (u'constellation', self.constellation),
+            (u'station', self.station),
+            (u'measurement',tuple(variables)),
+            (u'time', times),
+            (u'value', values),
             (u'units', units),
             (u'report_name', report_names)
         ])
-            
+
         return self.res
 
 class ListStationsWithParam(BaseResource):
@@ -332,7 +324,7 @@ class QueryDataSimple(QueryData):
 
     def __init__(self):
         QueryData.__init__(self, 'QueryData')
-    
+
     def get(self):
         if len(self.table) < 1:
             return {'time':[], 'value':[]}
@@ -387,7 +379,7 @@ routing_dict = {
          'QueryDataByTime': QueryDataByTime,
          'ListQACodes' : ListQACodes,
          'xmlrpc_cdrh.ListStationsWithParam' : ListStationsWithParam,
-         'xmlrpc_cdrh.RetrieveCurrentReadings' : RetrieveCurrentReadings, 
+         'xmlrpc_cdrh.RetrieveCurrentReadings' : RetrieveCurrentReadings,
          'xmlrpc_cdrh.LastMeasurementTime' : LastMeasurementTime,
          'xmlrpc_cdrh.QueryData' : QueryData,
          'xmlrpc_cdrh.ListConstellations' : ListConstellations,
@@ -447,7 +439,7 @@ class BaseApi(Resource):
         # load xmlrpc method
         self.api_endpoint = routing_dict[payload[1]]
         return dict(zip(self.api_endpoint.keys, payload[0]))
-    
+
     def dispatch_request(self, *args, **kwargs):
 
         # Taken from flask
